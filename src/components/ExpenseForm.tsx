@@ -13,6 +13,11 @@ type Group = {
   members: Member[];
 };
 
+type Share = {
+  memberName: string;
+  amount: number;
+};
+
 type ExpenseFormProps = {
   groups: Group[];
   groupId: string;
@@ -22,12 +27,7 @@ type ExpenseFormProps = {
     amount: number,
     payerName: string,
     dateTime: string,
-  ) => void;
-  onAddExtraCharge: (
-    groupId: string,
-    extraAmount: number,
-    paidBy: string,
-    owedBy: string,
+    shares: Share[],
   ) => void;
 };
 
@@ -35,15 +35,20 @@ const ExpenseForm = ({
   groups,
   groupId,
   onAddExpense,
-  onAddExtraCharge,
 }: ExpenseFormProps) => {
   const [error, setError] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [payerName, setPayerName] = useState("");
-  const [extraAmount, setExtraAmount] = useState("");
-  const [paidBy, setPaidBy] = useState("");
-  const [owedBy, setOwedBy] = useState("");
+  const [shareAmounts, setShareAmounts] = useState<
+    Record<string, string>
+  >({});
+  const [customMembers, setCustomMembers] = useState<
+    Record<string, boolean>
+  >({});
+  const [splitMode, setSplitMode] = useState<"equal" | "custom">(
+    "equal",
+  );
 
   const currentGroup = groups.find((group) => group._id === groupId);
   const members = currentGroup?.members ?? [];
@@ -54,6 +59,130 @@ const ExpenseForm = ({
   const buttonClassName =
     "rounded-md bg-[#090040] px-4 py-3 font-medium text-white transition hover:bg-[#20116b] disabled:cursor-not-allowed disabled:opacity-50";
 
+  // Calculate custom shares and divide the remaining amount equally.
+  const calculateCustomShares = (
+    totalAmount: number,
+    currentMembers: Member[],
+    customFlags: Record<string, boolean>,
+    currentShares: Record<string, string>,
+  ): Record<string, string> => {
+    if (!currentMembers.length || totalAmount <= 0) {
+      return {};
+    }
+
+    const totalCents = Math.round(totalAmount * 100);
+    const nextShares: Record<string, string> = {};
+    const customList = currentMembers.filter(
+      (member) => customFlags[member.name],
+    );
+    const remainderList = currentMembers.filter(
+      (member) => !customFlags[member.name],
+    );
+
+    let customTotalCents = 0;
+
+    for (const member of customList) {
+      const value = currentShares[member.name] ?? "";
+      const cents =
+        value.trim() !== "" && Number.isFinite(Number(value))
+          ? Math.round(Number(value) * 100)
+          : 0;
+
+      nextShares[member.name] = value;
+      customTotalCents += cents;
+    }
+
+    const remainingCents = totalCents - customTotalCents;
+
+    if (remainingCents < 0) {
+      // Keep custom amounts visible, but don't assign negative shares.
+      remainderList.forEach((member) => {
+        nextShares[member.name] = "0.00";
+      });
+
+      return nextShares;
+    }
+
+    if (remainderList.length > 0) {
+      const baseCents = Math.floor(
+        remainingCents / remainderList.length,
+      );
+      const extraCents = remainingCents % remainderList.length;
+
+      remainderList.forEach((member, index) => {
+        const cents = baseCents + (index < extraCents ? 1 : 0);
+        nextShares[member.name] = (cents / 100).toFixed(2);
+      });
+    }
+
+    return nextShares;
+  };
+
+  // Calculate equal shares directly from the current amount and members.
+  const calculateEqualShares = (
+    totalAmount: number,
+    currentMembers: Member[],
+  ): Record<string, string> => {
+    if (!currentMembers.length) return {};
+
+    const totalCents = Math.round(Math.max(0, totalAmount) * 100);
+    const baseCents = Math.floor(totalCents / currentMembers.length);
+    const extraCents = totalCents % currentMembers.length;
+
+    const equalShares: Record<string, string> = {};
+
+    currentMembers.forEach((member, index) => {
+      const cents = baseCents + (index < extraCents ? 1 : 0);
+      equalShares[member.name] = (cents / 100).toFixed(2);
+    });
+
+    return equalShares;
+  };
+
+  // Derived shares: no useEffect or extra state update required.
+  const displayedShares =
+    splitMode === "equal"
+      ? calculateEqualShares(Number(amount) || 0, members)
+      : calculateCustomShares(
+        Number(amount) || 0,
+        members,
+        customMembers,
+        shareAmounts,
+      );
+
+  // Equal Split automatically recalculates when the total changes.
+  const handleCustomAmountChange = (
+    memberName: string,
+    value: string,
+  ) => {
+    setShareAmounts((previous) => ({
+      ...previous,
+      [memberName]: value,
+    }));
+
+    setError("");
+  };
+
+  const handleCustomToggle = (memberName: string) => {
+    const isCurrentlyCustom = Boolean(customMembers[memberName]);
+
+    // Preserve the currently displayed share when enabling Custom.
+    if (!isCurrentlyCustom) {
+      setShareAmounts((previous) => ({
+        ...previous,
+        [memberName]:
+          displayedShares[memberName] ?? "0.00",
+      }));
+    }
+
+    setCustomMembers((previous) => ({
+      ...previous,
+      [memberName]: !previous[memberName],
+    }));
+
+    setError("");
+  };
+
   const handleAddExpense = () => {
     const numericAmount = Number(amount);
 
@@ -62,7 +191,11 @@ const ExpenseForm = ({
       return;
     }
 
-    if (!amount.trim() || !Number.isFinite(numericAmount) || numericAmount <= 0) {
+    if (
+      !amount.trim() ||
+      !Number.isFinite(numericAmount) ||
+      numericAmount <= 0
+    ) {
       setError("Amount must be a positive number.");
       return;
     }
@@ -72,7 +205,41 @@ const ExpenseForm = ({
       return;
     }
 
-    // Format the date and time using the user's local time.
+    if (!members.length) {
+      setError("Add group members before recording an expense.");
+      return;
+    }
+
+    const shares: Share[] = members.map((member) => ({
+      memberName: member.name,
+      amount: Number(displayedShares[member.name]),
+    }));
+
+    const hasInvalidShare = shares.some(
+      (share) =>
+        (displayedShares[share.memberName] ?? "").trim() === "" ||
+        !Number.isFinite(share.amount) ||
+        share.amount < 0,
+    );
+
+    if (hasInvalidShare) {
+      setError(
+        "Each member must have a valid, non-negative share.",
+      );
+      return;
+    }
+
+    const sharesTotalCents = shares.reduce(
+      (total, share) =>
+        total + Math.round(share.amount * 100),
+      0,
+    );
+
+    if (sharesTotalCents !== Math.round(numericAmount * 100)) {
+      setError("Individual shares must equal the total expense.");
+      return;
+    }
+
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, "0");
@@ -89,43 +256,26 @@ const ExpenseForm = ({
       numericAmount,
       payerName,
       currentDateTime,
+      shares,
     );
 
     setDescription("");
     setAmount("");
     setPayerName("");
     setError("");
+    setShareAmounts({});
+    setCustomMembers({});
+    setSplitMode("equal");
   };
 
-  const handleExtraCharge = () => {
-    const numericExtraAmount = Number(extraAmount);
-
-    if (
-      !extraAmount.trim() ||
-      !Number.isFinite(numericExtraAmount) ||
-      numericExtraAmount <= 0
-    ) {
-      setError("Extra amount must be a positive number.");
-      return;
-    }
-
-    if (!paidBy || !owedBy) {
-      setError("Please select who paid and who owes the extra charge.");
-      return;
-    }
-
-    onAddExtraCharge(
-      groupId,
-      numericExtraAmount,
-      paidBy,
-      owedBy,
-    );
-
-    setExtraAmount("");
-    setPaidBy("");
-    setOwedBy("");
-    setError("");
-  };
+  const totalSharesCents = members.reduce(
+    (total, member) =>
+      total +
+      Math.round(
+        (Number(displayedShares[member.name]) || 0) * 100,
+      ),
+    0,
+  );
 
   return (
     <div className="space-y-6">
@@ -167,7 +317,7 @@ const ExpenseForm = ({
               id={`amount-${groupId}`}
               type="number"
               min="0"
-              step="any"
+              step="0.01"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
               placeholder="Enter amount"
@@ -184,16 +334,14 @@ const ExpenseForm = ({
               Payer name
             </label>
 
-            <div className="h-12">
-              <select
+            <select
               id={`payer-${groupId}`}
               value={payerName}
               onChange={(event) => setPayerName(event.target.value)}
-              className={`${inputClassName} h-full`}
+              className={`${inputClassName} h-12`}
               disabled={!currentGroup?.isDisabled}
             >
               <option value="">Select payer</option>
-
               {members.map((member, index) => (
                 <option
                   key={`${member.name}-${index}`}
@@ -203,8 +351,131 @@ const ExpenseForm = ({
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h3 className="font-semibold text-gray-800">
+              Individual Shares
+            </h3>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSplitMode("equal");
+                  setCustomMembers({});
+                  setError("");
+                }}
+                className={`${buttonClassName} ${splitMode === "equal"
+                  ? ""
+                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                  }`}
+              >
+                Equal Split
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSplitMode("custom");
+                  setError("");
+                }}
+                className={`${buttonClassName} ${splitMode === "custom"
+                  ? ""
+                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                  }`}
+              >
+                Custom Split
+              </button>
             </div>
           </div>
+
+          {splitMode === "custom" && (
+            <p className="mb-3 text-sm text-gray-600">
+              Select Custom for members with different expenses.
+              Everyone else will split the remaining amount equally.
+            </p>
+          )}
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {members.map((member, index) => {
+              const isCustom = Boolean(customMembers[member.name]);
+
+              return (
+                <div
+                  key={`${member.name}-${index}`}
+                  className="rounded-md border border-gray-200 p-3"
+                >
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <label
+                      htmlFor={`share-${groupId}-${index}`}
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      {member.name}&apos;s share (৳)
+                    </label>
+
+                    {splitMode === "custom" && (
+                      <label className="flex items-center gap-2 text-xs text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={isCustom}
+                          onChange={() =>
+                            handleCustomToggle(member.name)
+                          }
+                          disabled={!currentGroup?.isDisabled}
+                        />
+                        Custom
+                      </label>
+                    )}
+                  </div>
+
+                  <input
+                    id={`share-${groupId}-${index}`}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={displayedShares[member.name] ?? ""}
+                    onChange={(event) =>
+                      handleCustomAmountChange(
+                        member.name,
+                        event.target.value,
+                      )
+                    }
+                    readOnly={splitMode === "equal" || !isCustom}
+                    placeholder={
+                      splitMode === "equal"
+                        ? "Equal share"
+                        : isCustom
+                          ? "Enter custom amount"
+                          : "Automatically calculated"
+                    }
+                    className={inputClassName}
+                    disabled={
+                      !currentGroup?.isDisabled ||
+                      splitMode === "equal" ||
+                      !isCustom
+                    }
+                  />
+
+                  {splitMode === "custom" && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      {isCustom
+                        ? "Fixed custom amount"
+                        : "Shares the remaining amount equally"}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="mt-3 text-sm text-gray-600">
+            Total shares: ৳{(totalSharesCents / 100).toFixed(2)}
+            {" / "}
+            ৳{(Number(amount) || 0).toFixed(2)}
+          </p>
         </div>
 
         {error && (
@@ -220,101 +491,6 @@ const ExpenseForm = ({
           className={`${buttonClassName} mt-3`}
         >
           Add Expense
-        </button>
-      </section>
-
-      {/* Extra Charge */}
-      <section className="mt-8 border-t border-gray-200 pt-6">
-        <h2 className="mb-4 text-xl font-bold text-black">
-          Extra Charge
-        </h2>
-
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          <div>
-            <label
-              htmlFor={`extra-amount-${groupId}`}
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              Extra Amount
-            </label>
-
-            <input
-              id={`extra-amount-${groupId}`}
-              type="number"
-              min="0"
-              step="any"
-              value={extraAmount}
-              onChange={(event) => setExtraAmount(event.target.value)}
-              placeholder="Enter extra amount"
-              className={inputClassName}
-              disabled={!currentGroup?.isDisabled}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor={`paid-by-${groupId}`}
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              Paid By
-            </label>
-
-            <select
-              id={`paid-by-${groupId}`}
-              value={paidBy}
-              onChange={(event) => setPaidBy(event.target.value)}
-              className={`${inputClassName} h-full`}
-              disabled={!currentGroup?.isDisabled}
-            >
-              <option value="">Select payer</option>
-
-              {members.map((member, index) => (
-                <option
-                  key={`${member.name}-${index}`}
-                  value={member.name}
-                >
-                  {member.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor={`owed-by-${groupId}`}
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              Owed By
-            </label>
-
-            <select
-              id={`owed-by-${groupId}`}
-              value={owedBy}
-              onChange={(event) => setOwedBy(event.target.value)}
-              className={`${inputClassName} h-full`}
-              disabled={!currentGroup?.isDisabled}
-            >
-              <option value="">Select member</option>
-
-              {members.map((member, index) => (
-                <option
-                  key={`${member.name}-${index}`}
-                  value={member.name}
-                >
-                  {member.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          disabled={!currentGroup?.isDisabled}
-          onClick={handleExtraCharge}
-          className={`${buttonClassName} mt-3`}
-        >
-          Add Extra Charge
         </button>
       </section>
     </div>

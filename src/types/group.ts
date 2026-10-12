@@ -1,4 +1,3 @@
-
 export type Member = {
   name: string;
   totalPaid: number;
@@ -10,7 +9,12 @@ export type Expense = {
   amount: number;
   payerName: string;
   time: string;
+  shares?: {
+    memberName: string;
+    amount: number;
+  }[];
 };
+
 
 export type ExtraCharge = {
   extraAmount: number;
@@ -24,5 +28,4 @@ export type Group = {
   isDisabled: boolean;
   members: Member[];
   expenses: Expense[];
-  extraCharges: ExtraCharge[];
 };

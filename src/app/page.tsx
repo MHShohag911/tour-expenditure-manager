@@ -2,9 +2,7 @@
 
 import type {
   Group,
-  Member,
   Expense,
-  ExtraCharge,
 } from "@/types/group";
 import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
@@ -86,84 +84,100 @@ export default function Home() {
     }
   };
 
-  
-const addExpense = async (
-  groupId: string,
-  description: string,
-  amount: number,
-  payerName: string,
-  currentDateTime: string,
-) => {
-  const currentGroup = currGroup(groupId);
 
-  if (!currentGroup) return;
+  const addExpense = async (
+    groupId: string,
+    description: string,
+    amount: number,
+    payerName: string,
+    currentDateTime: string,
+    shares: { memberName: string; amount: number }[],
+  ) => {
+    const currentGroup = currGroup(groupId);
 
-  if (currentGroup.members.length === 0) {
-    await Swal.fire(
-      "Add members first",
-      "Add at least one member before recording an expense.",
-      "warning",
-    );
-    return;
-  }
+    if (!currentGroup) return;
 
-  const newExpense: Expense = {
-    description: upperCase(description),
-    amount: Number(amount),
-    payerName,
-    time: currentDateTime,
+    if (currentGroup.members.length === 0) {
+      await Swal.fire(
+        "Add members first",
+        "Add at least one member before recording an expense.",
+        "warning",
+      );
+      return;
+    }
+
+    const newExpense: Expense = {
+      description: upperCase(description),
+      amount: Number(amount),
+      payerName,
+      time: currentDateTime,
+      shares,
+    };
+
+    const newExpenses = [...currentGroup.expenses, newExpense];
+
+    // Calculate each member's total owed using individual shares.
+    // Older expenses without shares use an equal split.
+    const updatedMembers = currentGroup.members.map((member) => {
+      const totalOwed = newExpenses.reduce((sum, expense) => {
+        if (expense.shares?.length) {
+          const memberShare = expense.shares.find(
+            (share) =>
+              share.memberName.toLowerCase() ===
+              member.name.toLowerCase(),
+          );
+
+          return sum + (memberShare?.amount ?? 0);
+        }
+
+        // Backward compatibility for older expenses.
+        return sum + expense.amount / currentGroup.members.length;
+      }, 0);
+
+      const totalPaid = newExpenses.reduce((sum, expense) => {
+        return expense.payerName.toLowerCase() ===
+          member.name.toLowerCase()
+          ? sum + Number(expense.amount)
+          : sum;
+      }, 0);
+
+      return {
+        ...member,
+        totalOwed: Number(totalOwed.toFixed(2)),
+        totalPaid: Number(totalPaid.toFixed(2)),
+      };
+    });
+
+    const updatedGroup = {
+      ...currentGroup,
+      members: updatedMembers,
+      expenses: newExpenses,
+    };
+
+    try {
+      await axiosSecure.put(
+        `/teamDB/${groupId}/group`,
+        updatedGroup,
+      );
+
+      const response = await axiosSecure.get<Group[]>("/teamDB");
+      setGroups(response.data);
+
+      await Swal.fire(
+        "Expense added!",
+        "The expense has been saved successfully.",
+        "success",
+      );
+    } catch (error) {
+      console.error("Failed to add expense:", error);
+
+      await Swal.fire(
+        "Error",
+        "Could not save the expense.",
+        "error",
+      );
+    }
   };
-
-  const newExpenses = [...currentGroup.expenses, newExpense];
-
-  // Calculate each member's equal share of all group expenses.
-  const total = newExpenses.reduce(
-    (sum, expense) => sum + Number(expense.amount),
-    0,
-  );
-
-  const splitAmount = total / currentGroup.members.length;
-
-  const updatedMembers = currentGroup.members.map((member) => ({
-    ...member,
-    totalOwed: splitAmount,
-    totalPaid:
-      member.name.toLowerCase() === payerName.toLowerCase()
-        ? (member.totalPaid || 0) + Number(amount)
-        : member.totalPaid || 0,
-  }));
-
-  // Prepare the complete updated group for the API.
-  const updatedGroup = {
-    ...currentGroup,
-    members: updatedMembers,
-    expenses: newExpenses,
-  };
-
-  try {
-    await axiosSecure.put(
-      `/teamDB/${groupId}/group`,
-      updatedGroup,
-    );
-
-    const response = await axiosSecure.get<Group[]>("/teamDB");
-    setGroups(response.data);
-
-    await Swal.fire(
-      "Expense added!",
-      "The expense has been saved successfully.",
-      "success",
-    );
-  } catch (error) {
-    console.error("Failed to add expense:", error);
-
-    await Swal.fire(
-      "Error",
-      "Could not save the expense.",
-      "error",
-    );
-  }
-};
 
 
   const handleSetGroup = async (groupId: string) => {
@@ -199,63 +213,6 @@ const addExpense = async (
     } catch (error) {
       console.error("Failed to set group:", error);
       Swal.fire("Error", "Could not set the group.", "error");
-    }
-  };
-
-  const addExtraCharge = async (
-    groupId: string,
-    extraAmount: number,
-    paidBy: string,
-    owedBy: string,
-  ) => {
-    const currentGroup = currGroup(groupId);
-
-    if (!currentGroup) return;
-
-    const amount = Number(extraAmount);
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-      await Swal.fire("Invalid amount", "Enter a valid amount.", "warning");
-      return;
-    }
-
-    const payer = currentGroup.members.find(
-      (member) => member.name === paidBy,
-    );
-    const lender = currentGroup.members.find(
-      (member) => member.name === owedBy,
-    );
-
-    if (!payer || !lender) {
-      await Swal.fire(
-        "Member not found",
-        "Please select valid group members.",
-        "error",
-      );
-      return;
-    }
-
-    try {
-      // Save the extra charge.
-      await axiosSecure.patch(`/teamDB/${groupId}/extraCharge`, {
-        extraAmount: amount,
-        paidBy,
-        owedBy,
-      });
-
-      // Update balances by the amount of this new charge.
-      await axiosSecure.patch(`/groups/${groupId}/updatePayment`, {
-        paidBy,
-        payerAmount: amount,
-        owedBy,
-        lenderAmount: amount,
-      });
-
-      const response = await axiosSecure.get<Group[]>("/teamDB");
-      setGroups(response.data);
-    } catch (error) {
-      console.error("Failed to add extra charge:", error);
-      Swal.fire("Error", "Could not save the extra charge.", "error");
     }
   };
 
@@ -302,7 +259,6 @@ const addExpense = async (
           onAddMember={addMember}
           onAddExpense={addExpense}
           handleSetGroup={handleSetGroup}
-          onAddExtraCharge={addExtraCharge}
         />
       </main>
 

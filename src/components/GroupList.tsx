@@ -13,9 +13,22 @@ type GroupListProps = {
   groups: Group[];
   setGroups: Dispatch<SetStateAction<Group[]>>;
   onAddMember: (groupId: string, memberName: string) => void;
-  onAddExpense: (...args: any[]) => void;
   handleSetGroup: (groupId: string) => void;
-  onAddExtraCharge: (...args: any[]) => void;
+  onAddExpense: (
+    groupId: string,
+    description: string,
+    amount: number,
+    payerName: string,
+    currentDateTime: string,
+    shares: { memberName: string; amount: number }[]
+  ) => void;
+/* 
+  onAddExtraCharge: (
+    groupId: string,
+    extraAmount: number,
+    paidBy: string,
+    owedBy: string
+  ) => void; */
 };
 
 const GroupList = ({
@@ -24,7 +37,7 @@ const GroupList = ({
   onAddMember,
   onAddExpense,
   handleSetGroup,
-  onAddExtraCharge,
+  // onAddExtraCharge,
 }: GroupListProps) => {
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
 
@@ -226,7 +239,7 @@ const GroupList = ({
                 groups={groups}
                 groupId={group._id}
                 onAddExpense={onAddExpense}
-                onAddExtraCharge={onAddExtraCharge}
+                // onAddExtraCharge={onAddExtraCharge}
               />
 
               <ExpenseList
@@ -235,7 +248,7 @@ const GroupList = ({
                 group={group}
                 expenses={group.expenses}
                 expenseId={group._id}
-                extraCharges={group.extraCharges}
+                // extraCharges={group.extraCharges}
                 onRefresh={refreshGroups}
               />
             </div>

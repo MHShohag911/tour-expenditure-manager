@@ -10,6 +10,29 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
+type ExpenseRecord = {
+  description: string;
+  amount: number;
+  payerName: string;
+  time: string;
+  shares?: {
+    memberName: string;
+    amount: number;
+  }[];
+};
+
+type MemberRecord = {
+  name: string;
+  totalPaid: number;
+  totalOwed: number;
+};
+
+type ExtraChargeRecord = {
+  extraAmount: number;
+  paidBy: string;
+  owedBy: string;
+};
+
 export async function DELETE(
   request: Request,
   { params }: RouteContext
@@ -54,9 +77,9 @@ export async function DELETE(
       );
     }
 
-    const expenses = group.expenses ?? [];
-    const members = group.members ?? [];
-    const extraCharges = group.extraCharges ?? [];
+    const expenses = (group.expenses ?? []) as ExpenseRecord[];
+    const members = (group.members ?? []) as MemberRecord[];
+    const extraCharges = (group.extraCharges ?? []) as ExtraChargeRecord[];
 
     if (index >= expenses.length) {
       return NextResponse.json(
@@ -67,74 +90,65 @@ export async function DELETE(
 
     // Remove the selected expense.
     const remainingExpenses = expenses.filter(
-      (_: unknown, i: number) => i !== index
+      (_, i) => i !== index
     );
 
-    // Recalculate balances from the remaining expenses.
-    const updatedMembers = members.map(
-      (member: {
-        name: string;
-        totalPaid: number;
-        totalOwed: number;
-      }) => {
-        const totalPaidFromExpenses =
-          remainingExpenses.reduce(
-            (
-              total: number,
-              expense: {
-                amount: number;
-                payerName: string;
-              }
-            ) =>
-              expense.payerName === member.name
-                ? total + Number(expense.amount)
-                : total,
-            0
-          );
+    // Recalculate every member's balances.
+    const updatedMembers = members.map((member) => {
+      const totalPaidFromExpenses = remainingExpenses.reduce(
+        (total, expense) =>
+          expense.payerName === member.name
+            ? total + Number(expense.amount)
+            : total,
+        0
+      );
 
-        const totalOwedFromExpenses =
-          members.length > 0
-            ? remainingExpenses.reduce(
-                (total: number, expense: { amount: number }) =>
-                  total + Number(expense.amount),
-                0
-              ) / members.length
-            : 0;
+      const totalOwedFromExpenses = remainingExpenses.reduce(
+        (total, expense) => {
+          // Use saved individual shares when available.
+          if (expense.shares && expense.shares.length > 0) {
+            const memberShare = expense.shares.find(
+              (share) => share.memberName === member.name
+            );
 
-        // Keep extra-charge contributions in the balances.
-        const totalPaidFromExtraCharges =
-          extraCharges.reduce(
-            (
-              total: number,
-              charge: { extraAmount: number; paidBy: string }
-            ) =>
-              charge.paidBy === member.name
-                ? total + Number(charge.extraAmount)
-                : total,
-            0
-          );
+            return total + Number(memberShare?.amount ?? 0);
+          }
 
-        const totalOwedFromExtraCharges =
-          extraCharges.reduce(
-            (
-              total: number,
-              charge: { extraAmount: number; owedBy: string }
-            ) =>
-              charge.owedBy === member.name
-                ? total + Number(charge.extraAmount)
-                : total,
-            0
-          );
+          // Legacy expenses without shares use equal splitting.
+          if (members.length === 0) {
+            return total;
+          }
 
-        return {
-          ...member,
-          totalPaid:
-            totalPaidFromExpenses + totalPaidFromExtraCharges,
-          totalOwed:
-            totalOwedFromExpenses + totalOwedFromExtraCharges,
-        };
-      }
-    );
+          return total + Number(expense.amount) / members.length;
+        },
+        0
+      );
+
+      // Preserve extra-charge contributions.
+      const totalPaidFromExtraCharges = extraCharges.reduce(
+        (total, charge) =>
+          charge.paidBy === member.name
+            ? total + Number(charge.extraAmount)
+            : total,
+        0
+      );
+
+      const totalOwedFromExtraCharges = extraCharges.reduce(
+        (total, charge) =>
+          charge.owedBy === member.name
+            ? total + Number(charge.extraAmount)
+            : total,
+        0
+      );
+
+      return {
+        ...member,
+        totalPaid:
+          totalPaidFromExpenses + totalPaidFromExtraCharges,
+        totalOwed:
+          totalOwedFromExpenses + totalOwedFromExtraCharges,
+      };
+    });
 
     await collection.updateOne(
       { _id: new ObjectId(id) },
