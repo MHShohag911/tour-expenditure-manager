@@ -1,0 +1,232 @@
+
+{
+  "_id": "688263d0677b1efa1c368a3b",
+  "name": "Sreemangol",
+  "members": [
+    {
+      "name": "Shohag",
+      "totalPaid": 20030,
+      "totalOwed": 3338.3333333333335
+    },
+    {
+      "name": "Saiful",
+      "totalPaid": 0,
+      "totalOwed": 3338.3333333333335
+    },
+    {
+      "name": "Nafiz",
+      "totalPaid": 0,
+      "totalOwed": 3338.3333333333335
+    },
+    {
+      "name": "Shuvo",
+      "totalPaid": 0,
+      "totalOwed": 3338.3333333333335
+    },
+    {
+      "name": "Shajbir",
+      "totalPaid": 0,
+      "totalOwed": 3338.3333333333335
+    },
+    {
+      "name": "Sajjad",
+      "totalPaid": 0,
+      "totalOwed": 3338.3333333333335
+    }
+  ],
+  "expenses": [
+    {
+      "description": "Water",
+      "amount": 45,
+      "payerName": "Shohag",
+      "time": "2025-07-24 T22:49"
+    },
+    {
+      "description": "Chips",
+      "amount": 90,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T03:05"
+    },
+    {
+      "description": "Breakfast - Roti, Egg, Veg",
+      "amount": 390,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T06:57"
+    },
+    {
+      "description": "Peyara",
+      "amount": 60,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T09:05"
+    },
+    {
+      "description": "Madhobpur Ticket",
+      "amount": 50,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T09:05"
+    },
+    {
+      "description": "Water",
+      "amount": 35,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T09:05"
+    },
+    {
+      "description": "Water, Saline",
+      "amount": 70,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T10:15"
+    },
+    {
+      "description": "Pineapple",
+      "amount": 80,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T10:19"
+    },
+    {
+      "description": "Tea",
+      "amount": 80,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T13:15"
+    },
+    {
+      "description": "Lawachhara Ticket",
+      "amount": 800,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T13:16"
+    },
+    {
+      "description": "Kola",
+      "amount": 40,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T13:17"
+    },
+    {
+      "description": "Lunch",
+      "amount": 1000,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T14:03"
+    },
+    {
+      "description": "Car Fare",
+      "amount": 4000,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T16:01"
+    },
+    {
+      "description": "Tea",
+      "amount": 270,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T16:05"
+    },
+    {
+      "description": "Bus Fare Sreemangal to Sylhet",
+      "amount": 1080,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T17:56"
+    },
+    {
+      "description": "Bus Fare Partial Payment",
+      "amount": 1000,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T20:02"
+    },
+    {
+      "description": "Hotel Fare",
+      "amount": 2500,
+      "payerName": "Shohag",
+      "time": "2025-07-25 T21:19"
+    },
+    {
+      "description": "CNG Vara ",
+      "amount": 180,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T10:20"
+    },
+    {
+      "description": "Dinner",
+      "amount": 840,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T10:20"
+    },
+    {
+      "description": "Breakfast",
+      "amount": 380,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T10:24"
+    },
+    {
+      "description": "CNG Vara",
+      "amount": 120,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T10:24"
+    },
+    {
+      "description": "Water",
+      "amount": 30,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T10:26"
+    },
+    {
+      "description": "Auto Vara ",
+      "amount": 50,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T12:33"
+    },
+    {
+      "description": "Water, Biscuits, Saline",
+      "amount": 150,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T12:35"
+    },
+    {
+      "description": "Boat Fee",
+      "amount": 600,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T15:00"
+    },
+    {
+      "description": "Bus",
+      "amount": 900,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T15:01"
+    },
+    {
+      "description": "Locker",
+      "amount": 200,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T15:02"
+    },
+    {
+      "description": "Water",
+      "amount": 50,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T15:08"
+    },
+    {
+      "description": "Auto Vara",
+      "amount": 120,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T18:44"
+    },
+    {
+      "description": "Bus Vara",
+      "amount": 900,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T18:45"
+    },
+    {
+      "description": "Bus Remaining Payment",
+      "amount": 3020,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T21:24"
+    },
+    {
+      "description": "Cheaken, Nun",
+      "amount": 900,
+      "payerName": "Shohag",
+      "time": "2025-07-26 T23:35"
+    }
+  ],
+  "isDisabled": true
+}
