@@ -4,6 +4,12 @@ export type Member = {
   totalOwed: number;
 };
 
+export type ExpenseItem = {
+  description: string;
+  amount: number;
+  owedBy: string[];
+};
+
 export type Expense = {
   description: string;
   amount: number;
@@ -13,6 +19,7 @@ export type Expense = {
     memberName: string;
     amount: number;
   }[];
+  items?: ExpenseItem[];
 };
 
 
@@ -28,4 +35,5 @@ export type Group = {
   isDisabled: boolean;
   members: Member[];
   expenses: Expense[];
+  extraCharges: ExtraCharge[];
 };

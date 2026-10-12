@@ -18,6 +18,17 @@ type Share = {
   amount: number;
 };
 
+type ExpenseItem = {
+  description: string;
+  amount: number;
+  owedBy: string[];
+};
+
+type ExpenseShare = {
+  memberName: string;
+  amount: number;
+};
+
 type ExpenseFormProps = {
   groups: Group[];
   groupId: string;
@@ -27,7 +38,8 @@ type ExpenseFormProps = {
     amount: number,
     payerName: string,
     dateTime: string,
-    shares: Share[],
+    shares: ExpenseShare[],
+    items: ExpenseItem[],
   ) => void;
 };
 
@@ -40,6 +52,10 @@ const ExpenseForm = ({
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [payerName, setPayerName] = useState("");
+  const [items, setItems] = useState<ExpenseItem[]>([]);
+  const [itemDescription, setItemDescription] = useState("");
+  const [itemAmount, setItemAmount] = useState("");
+  const [itemOwedBy, setItemOwedBy] = useState<string[]>([]);
   const [shareAmounts, setShareAmounts] = useState<
     Record<string, string>
   >({});
@@ -183,6 +199,45 @@ const ExpenseForm = ({
     setError("");
   };
 
+
+  const handleAddItem = () => {
+    const numericItemAmount = Number(itemAmount);
+
+    if (!itemDescription.trim()) {
+      setError("Please enter an item description.");
+      return;
+    }
+
+    if (
+      !itemAmount.trim() ||
+      !Number.isFinite(numericItemAmount) ||
+      numericItemAmount <= 0
+    ) {
+      setError("Item amount must be a positive number.");
+      return;
+    }
+
+    if (itemOwedBy.length === 0) {
+      setError("Please select at least one member responsible for this item.");
+      return;
+    }
+
+    setItems((previousItems) => [
+      ...previousItems,
+      {
+        description: itemDescription.trim(),
+        amount: numericItemAmount,
+        owedBy: itemOwedBy,
+      },
+    ]);
+
+    setItemDescription("");
+    setItemAmount("");
+    setItemOwedBy([]);
+    setError("");
+  };
+
+
   const handleAddExpense = () => {
     const numericAmount = Number(amount);
 
@@ -210,54 +265,61 @@ const ExpenseForm = ({
       return;
     }
 
-    const shares: Share[] = members.map((member) => ({
-      memberName: member.name,
-      amount: Number(displayedShares[member.name]),
-    }));
 
-    const hasInvalidShare = shares.some(
-      (share) =>
-        (displayedShares[share.memberName] ?? "").trim() === "" ||
-        !Number.isFinite(share.amount) ||
-        share.amount < 0,
-    );
-
-    if (hasInvalidShare) {
-      setError(
-        "Each member must have a valid, non-negative share.",
-      );
-      return;
-    }
-
-    const sharesTotalCents = shares.reduce(
-      (total, share) =>
-        total + Math.round(share.amount * 100),
+    const itemsTotal = items.reduce(
+      (total, item) => total + Number(item.amount),
       0,
     );
 
-    if (sharesTotalCents !== Math.round(numericAmount * 100)) {
-      setError("Individual shares must equal the total expense.");
-      return;
+    const totalAmount = numericAmount + itemsTotal;
+
+    let shares: Share[] = [];
+
+    if (splitMode === "custom") {
+      shares = members.map((member) => ({
+        memberName: member.name,
+        amount: Number(displayedShares[member.name]),
+      }));
+
+      const hasInvalidShare = shares.some(
+        (share) =>
+          (displayedShares[share.memberName] ?? "").trim() === "" ||
+          !Number.isFinite(share.amount) ||
+          share.amount < 0,
+      );
+
+      if (hasInvalidShare) {
+        setError("Each member must have a valid, non-negative share.");
+        return;
+      }
+
+      const sharesTotalCents = shares.reduce(
+        (total, share) => total + Math.round(share.amount * 100),
+        0,
+      );
+
+      if (sharesTotalCents !== Math.round(numericAmount * 100)) {
+        setError("Custom shares must equal the shared expense amount.");
+        return;
+      }
     }
 
     const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const hours = String(now.getHours()).padStart(2, "0");
-    const minutes = String(now.getMinutes()).padStart(2, "0");
-
-    const currentDateTime =
-      `${year}-${month}-${day}T${hours}:${minutes}`;
+    const currentDateTime = [
+      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`,
+      `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+    ].join("T");
 
     onAddExpense(
       groupId,
       description.trim(),
-      numericAmount,
+      totalAmount,
       payerName,
       currentDateTime,
       shares,
+      items,
     );
+
 
     setDescription("");
     setAmount("");
@@ -492,6 +554,132 @@ const ExpenseForm = ({
         >
           Add Expense
         </button>
+
+
+        <div className="mt-6 border-t border-gray-200 pt-5">
+          <h3 className="mb-3 text-lg font-semibold text-black">
+            Individual Items (Optional)
+          </h3>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Item description
+              </label>
+              <input
+                type="text"
+                value={itemDescription}
+                onChange={(event) => setItemDescription(event.target.value)}
+                placeholder="e.g. Extra chicken"
+                className={inputClassName}
+                disabled={!currentGroup?.isDisabled}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Item amount
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={itemAmount}
+                onChange={(event) => setItemAmount(event.target.value)}
+                placeholder="Enter item amount"
+                className={inputClassName}
+                disabled={!currentGroup?.isDisabled}
+              />
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <p className="mb-2 text-sm font-medium text-gray-700">
+              Who owes for this item?
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              {members.map((member, index) => (
+                <label
+                  key={`${member.name}-${index}`}
+                  className="flex items-center gap-2 text-sm text-gray-700"
+                >
+                  <input
+                    type="checkbox"
+                    checked={itemOwedBy.includes(member.name)}
+                    onChange={(event) => {
+                      setItemOwedBy((previousMembers) =>
+                        event.target.checked
+                          ? [...previousMembers, member.name]
+                          : previousMembers.filter(
+                            (name) => name !== member.name
+                          )
+                      );
+                    }}
+                    disabled={!currentGroup?.isDisabled}
+                  />
+                  {member.name}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            disabled={!currentGroup?.isDisabled}
+            onClick={handleAddItem}
+            className={`${buttonClassName} mt-3`}
+          >
+            Add Individual Item
+          </button>
+
+          {items.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <h4 className="font-medium text-gray-800">
+                Items added
+              </h4>
+
+              {items.map((item, index) => (
+                <div
+                  key={`${item.description}-${index}`}
+                  className="flex flex-col justify-between gap-2 rounded-md border border-gray-200 p-3 sm:flex-row sm:items-center"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {item.description}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Owed by: {item.owedBy.join(", ")}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-gray-900">
+                      ৳{item.amount.toFixed(2)}
+                    </span>
+
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setItems((previousItems) =>
+                          previousItems.filter((_, i) => i !== index),
+                        );
+
+                        setError("");
+                      }}
+                      className="text-sm font-medium text-red-600 hover:text-red-800"
+                    >
+                      Remove
+                    </button>
+
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </section>
     </div>
   );

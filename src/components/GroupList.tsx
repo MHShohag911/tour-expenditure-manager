@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 import ExpenseForm from "./ExpenseForm";
 import ExpenseList from "./ExpenseList";
 import { axiosSecure } from "../hooks/useAxiosSecure";
-import type { Group } from "@/types/group";
+import type { Group, ExpenseItem } from "@/types/group";
 
 type GroupListProps = {
   groups: Group[];
@@ -15,20 +15,14 @@ type GroupListProps = {
   onAddMember: (groupId: string, memberName: string) => void;
   handleSetGroup: (groupId: string) => void;
   onAddExpense: (
-    groupId: string,
-    description: string,
-    amount: number,
-    payerName: string,
-    currentDateTime: string,
-    shares: { memberName: string; amount: number }[]
-  ) => void;
-/* 
-  onAddExtraCharge: (
-    groupId: string,
-    extraAmount: number,
-    paidBy: string,
-    owedBy: string
-  ) => void; */
+  groupId: string,
+  description: string,
+  amount: number,
+  payerName: string,
+  currentDateTime: string,
+  shares: { memberName: string; amount: number }[],
+  items: ExpenseItem[],
+) => void;
 };
 
 const GroupList = ({

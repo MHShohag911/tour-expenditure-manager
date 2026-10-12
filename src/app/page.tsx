@@ -3,6 +3,7 @@
 import type {
   Group,
   Expense,
+  ExpenseItem
 } from "@/types/group";
 import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
@@ -85,6 +86,7 @@ export default function Home() {
   };
 
 
+
   const addExpense = async (
     groupId: string,
     description: string,
@@ -92,6 +94,7 @@ export default function Home() {
     payerName: string,
     currentDateTime: string,
     shares: { memberName: string; amount: number }[],
+    items: ExpenseItem[],
   ) => {
     const currentGroup = currGroup(groupId);
 
@@ -106,45 +109,142 @@ export default function Home() {
       return;
     }
 
+    const itemsTotal = items.reduce(
+      (sum, item) => sum + Number(item.amount),
+      0,
+    );
+
+    const sharedAmount = Number(amount) - itemsTotal;
+    console.log("DEBUG expense:", {
+      amount,
+      itemsTotal,
+      sharedAmount,
+      shares,
+      items,
+    });
+
+    if (sharedAmount < 0) {
+      await Swal.fire(
+        "Invalid expense",
+        "Individual item amounts cannot exceed the total expense amount.",
+        "warning",
+      );
+      return;
+    }
+
     const newExpense: Expense = {
       description: upperCase(description),
       amount: Number(amount),
       payerName,
       time: currentDateTime,
-      shares,
+      ...(shares.length > 0 ? { shares } : {}),
+      ...(items.length > 0 ? { items } : {}),
     };
 
-    const newExpenses = [...currentGroup.expenses, newExpense];
+    const newExpenses = [
+      ...(currentGroup.expenses ?? []),
+      newExpense,
+    ];
 
-    // Calculate each member's total owed using individual shares.
-    // Older expenses without shares use an equal split.
-    const updatedMembers = currentGroup.members.map((member) => {
-      const totalOwed = newExpenses.reduce((sum, expense) => {
-        if (expense.shares?.length) {
-          const memberShare = expense.shares.find(
-            (share) =>
-              share.memberName.toLowerCase() ===
-              member.name.toLowerCase(),
+    const members = currentGroup.members;
+    const extraCharges = currentGroup.extraCharges ?? [];
+
+    const updatedMembers = members.map((member) => {
+      // Recalculate the total amount paid by this member.
+      const totalPaidFromExpenses = newExpenses.reduce(
+        (sum, expense) =>
+          expense.payerName.toLowerCase() ===
+            member.name.toLowerCase()
+            ? sum + Number(expense.amount)
+            : sum,
+        0,
+      );
+
+      // Recalculate this member's share of all expenses.
+      const totalOwedFromExpenses = newExpenses.reduce(
+        (sum, expense) => {
+          const expenseItems = expense.items ?? [];
+
+          const expenseItemsTotal = expenseItems.reduce(
+            (itemSum, item) =>
+              itemSum + Number(item.amount),
+            0,
           );
 
-          return sum + (memberShare?.amount ?? 0);
-        }
+          const expenseSharedAmount =
+            Number(expense.amount) - expenseItemsTotal;
 
-        // Backward compatibility for older expenses.
-        return sum + expense.amount / currentGroup.members.length;
-      }, 0);
+          let memberSharedAmount: number;
 
-      const totalPaid = newExpenses.reduce((sum, expense) => {
-        return expense.payerName.toLowerCase() ===
-          member.name.toLowerCase()
-          ? sum + Number(expense.amount)
-          : sum;
-      }, 0);
+          if (expense.shares && expense.shares.length > 0) {
+            // Preserve saved custom shares.
+            memberSharedAmount = expense.shares.reduce(
+              (shareSum, share) =>
+                share.memberName.toLowerCase() ===
+                  member.name.toLowerCase()
+                  ? shareSum + Number(share.amount)
+                  : shareSum,
+              0,
+            );
+          } else {
+            // Equal split of the shared portion only.
+            memberSharedAmount =
+              members.length > 0
+                ? expenseSharedAmount / members.length
+                : 0;
+          }
+
+          // Add only the individual items assigned to this member.
+          const memberItemAmount = expenseItems.reduce(
+            (itemSum, item) => {
+              if (item.owedBy.length === 0) {
+                return itemSum;
+              }
+
+              const isResponsible = item.owedBy.some(
+                (name) =>
+                  name.toLowerCase() ===
+                  member.name.toLowerCase(),
+              );
+
+              return isResponsible
+                ? itemSum +
+                Number(item.amount) / item.owedBy.length
+                : itemSum;
+            },
+            0,
+          );
+
+          return sum + memberSharedAmount + memberItemAmount;
+        },
+        0,
+      );
+
+      // Preserve existing extra-charge calculations.
+      const totalPaidFromExtraCharges = extraCharges.reduce(
+        (sum, charge) =>
+          charge.paidBy.toLowerCase() ===
+            member.name.toLowerCase()
+            ? sum + Number(charge.extraAmount)
+            : sum,
+        0,
+      );
+
+      const totalOwedFromExtraCharges = extraCharges.reduce(
+        (sum, charge) =>
+          charge.owedBy.toLowerCase() ===
+            member.name.toLowerCase()
+            ? sum + Number(charge.extraAmount)
+            : sum,
+        0,
+      );
 
       return {
         ...member,
-        totalOwed: Number(totalOwed.toFixed(2)),
-        totalPaid: Number(totalPaid.toFixed(2)),
+        totalPaid:
+          totalPaidFromExpenses + totalPaidFromExtraCharges,
+        totalOwed:
+          totalOwedFromExpenses + totalOwedFromExtraCharges,
       };
     });
 
@@ -160,7 +260,9 @@ export default function Home() {
         updatedGroup,
       );
 
-      const response = await axiosSecure.get<Group[]>("/teamDB");
+      const response =
+        await axiosSecure.get<Group[]>("/teamDB");
+
       setGroups(response.data);
 
       await Swal.fire(
@@ -178,6 +280,7 @@ export default function Home() {
       );
     }
   };
+
 
 
   const handleSetGroup = async (groupId: string) => {
