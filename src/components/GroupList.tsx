@@ -133,7 +133,7 @@ const GroupList = ({
       {groups.map((group) => (
         <div
           key={group._id}
-          className="my-8 rounded-xl border border-gray-200 bg-white py-2 shadow-md md:py-8"
+          className="my-12 rounded-xl border border-gray-200 bg-white py-2 shadow-md md:py-8"
         >
           <div className="p-5">
             <div className="flex flex-col justify-between space-y-2 md:flex-row md:space-y-0">
