@@ -17,7 +17,7 @@ type GroupDocument = {
   isDisabled?: boolean;
 };
 
-const DATABASE_NAME = "Tour-Expenditure-Management";
+const DATABASE_NAME = "Tour-Expenditure-Management-Test";
 const COLLECTION_NAME = "TeamDB";
 
 type RouteContext = {

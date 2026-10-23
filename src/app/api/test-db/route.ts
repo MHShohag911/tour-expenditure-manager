@@ -10,13 +10,13 @@ export async function GET() {
     await client.db("admin").command({ ping: 1 });
 
     // Check the database used by your project.
-    const db = client.db("Tour-Expenditure-Management");
+    const db = client.db("Tour-Expenditure-Management-Test");
     const collections = await db.listCollections().toArray();
 
     return NextResponse.json({
       success: true,
       message: "MongoDB connected successfully!",
-      database: "Tour-Expenditure-Management",
+      database: "Tour-Expenditure-Management-Test",
       collections: collections.map((collection) => collection.name),
     });
   } catch (error) {
