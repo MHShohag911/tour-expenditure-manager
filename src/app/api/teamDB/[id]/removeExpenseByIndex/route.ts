@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
 
-const DATABASE_NAME = "Tour-Expenditure-Management-Test";
+const DATABASE_NAME = "Tour-Expenditure-Management";
 const COLLECTION_NAME = "TeamDB";
 
 type RouteContext = {
