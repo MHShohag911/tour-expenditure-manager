@@ -16,7 +16,6 @@ export type Expense = {
   }[];
 };
 
-
 export type ExtraCharge = {
   extraAmount: number;
   paidBy: string;

@@ -2,7 +2,7 @@ import { ObjectId, type Document } from "mongodb";
 import { randomUUID } from "crypto";
 import clientPromise from "@/lib/mongodb";
 
-const DATABASE_NAME = "Tour-Expenditure-Management";
+const DATABASE_NAME = "Tour-Expenditure-Management-Test";
 const COLLECTION_NAME = "TeamDB";
 
 type Share = {
@@ -299,7 +299,7 @@ export async function POST(
             { _id: groupId, isFinished: { $ne: true } },
             {
                 $set: {
-                    id,
+                    // id,
                     members: updatedMembers,
                     expenses,
                 },
