@@ -8,12 +8,14 @@ type ExpenseListProps = {
   group: Group;
   expenses: Expense[];
   expenseId: string;
+  isFinished?: boolean;
   onRefresh: () => Promise<void>;
 };
 
 const ExpenseList = ({
   groupId,
   expenses,
+  isFinished,
   onRefresh,
 }: ExpenseListProps) => {
   const handleDelete = async (expense: Expense) => {
@@ -33,7 +35,7 @@ const ExpenseList = ({
         text: "You won't be able to revert this!",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#3085d6",
+        confirmButtonColor: "#15D8B3",
         cancelButtonColor: "#d33",
         confirmButtonText: "Yes, delete it!",
       });
@@ -83,13 +85,15 @@ const ExpenseList = ({
               </div>
               <span className="text-xs ml-4 text-gray-600">{expense.time}</span>
             </div>
+            {!isFinished &&
             <button
               type="button"
               className="rounded-md bg-purple-700 px-4 py-2 text-white hover:bg-purple-800"
+              disabled={Boolean(isFinished)}
               onClick={() => handleDelete(expense)}
             >
               Delete
-            </button>
+            </button>}
           </li>
         ))}
       </ul>

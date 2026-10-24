@@ -27,6 +27,7 @@ export type Group = {
   _id: string;
   name: string;
   isDisabled: boolean;
+  isFinished?: boolean;
   members: Member[];
   expenses: Expense[];
 };
