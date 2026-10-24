@@ -188,35 +188,41 @@ const GroupList = ({
             </div>
 
             <div className="my-5 space-y-3">
-              <input
-                type="text"
-                aria-label={`Member name for ${group.name}`}
-                placeholder="Member Name"
-                value={memberNames[group._id] || ""}
-                disabled={group.isDisabled || group.isFinished}
-                onChange={(event) =>
-                  setMemberNames((previous) => ({
-                    ...previous,
-                    [group._id]: event.target.value,
-                  }))
-                }
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    handleAddMember(group._id);
-                  }
-                }}
-                className="w-full rounded-md border border-gray-300 px-3 py-3 text-black outline-none focus:border-[#090040] focus:ring-1 focus:ring-[#090040] disabled:bg-gray-100"
-              />
+              {
+                !group.isDisabled &&
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    aria-label={`Member name for ${group.name}`}
+                    placeholder="Member Name"
+                    value={memberNames[group._id] || ""}
+                    disabled={group.isDisabled || group.isFinished}
+                    onChange={(event) =>
+                      setMemberNames((previous) => ({
+                        ...previous,
+                        [group._id]: event.target.value,
+                      }))
+                    }
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleAddMember(group._id);
+                      }
+                    }}
+                    className="w-full rounded-md border border-gray-300 px-3 py-3 text-black outline-none focus:border-[#090040] focus:ring-1 focus:ring-[#090040] disabled:bg-gray-100"
+                  />
 
-              <button
-                type="button"
-                disabled={group.isDisabled || group.isFinished}
-                onClick={() => handleAddMember(group._id)}
-                className="rounded-md bg-[#090040] px-4 py-3 text-white transition hover:bg-[#20116b] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Add Member
-              </button>
+                  <button
+                    type="button"
+                    disabled={group.isDisabled || group.isFinished}
+                    onClick={() => handleAddMember(group._id)}
+                    className="rounded-md bg-[#090040] px-4 py-3 text-white transition hover:bg-[#20116b] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Add Member
+                  </button>
+                </div>
+              }
+
             </div>
 
             <div>
@@ -285,10 +291,10 @@ const GroupList = ({
                           </p>
                           <p
                             className={`mt-1 text-base font-semibold ${isSettled
-                                ? "text-gray-600"
-                                : isCreditor
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                              ? "text-gray-600"
+                              : isCreditor
+                                ? "text-green-600"
+                                : "text-red-600"
                               }`}
                           >
                             {isSettled
