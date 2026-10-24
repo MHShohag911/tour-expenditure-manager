@@ -222,37 +222,84 @@ const GroupList = ({
             <div>
               <h3 className="font-bold text-black">Members:</h3>
 
-              <ul>
+              <ul className="space-y-3">
                 {group.members.map((member, index) => {
                   const balance = member.totalPaid - member.totalOwed;
+                  const isCreditor = balance > 0;
+                  const isSettled = Math.abs(balance) < 0.005; // ~0
 
                   return (
                     <li
                       key={`${group._id}-${index}`}
-                      className="my-2 flex items-center justify-between gap-3 text-black"
+                      className="rounded-lg border border-gray-200 bg-gray-50 p-4"
                     >
-                      <div>
-                        <span className="font-bold">{index + 1}. </span>
-                        {member.name} - Paid: ৳{member.totalPaid}, Owes: ৳
-                        {member.totalOwed.toFixed(2)}
-                        <span className="ml-2">
-                          {balance > 0
-                            ? `Will Get ${balance.toFixed(2)}`
-                            : `Will Pay ${Math.abs(balance).toFixed(2)}`}
-                        </span>
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm font-medium text-gray-500">
+                            {index + 1}.
+                          </span>
+                          <span className="text-lg font-semibold text-gray-900">
+                            {member.name}
+                          </span>
+                        </div>
+
+                        {!group.isDisabled && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMember(index, group._id)}
+                            className="rounded-md border border-red-200 bg-white px-3 py-1 text-sm text-red-600 transition hover:bg-red-50"
+                          >
+                            Remove
+                          </button>
+                        )}
                       </div>
 
-                      {!group.isDisabled && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDeleteMember(index, group._id)
-                          }
-                          className="rounded-md bg-[#090040] px-3 py-2 text-white transition hover:bg-[#20116b]"
-                        >
-                          Delete
-                        </button>
-                      )}
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                            Paid
+                          </p>
+                          <p className="mt-1 text-base font-medium text-gray-900">
+                            ৳{member.totalPaid.toLocaleString("en-US", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                            Owes
+                          </p>
+                          <p className="mt-1 text-base font-medium text-gray-900">
+                            ৳{member.totalOwed.toLocaleString("en-US", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                            {isSettled ? "Status" : isCreditor ? "Will Get" : "Will Pay"}
+                          </p>
+                          <p
+                            className={`mt-1 text-base font-semibold ${isSettled
+                                ? "text-gray-600"
+                                : isCreditor
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }`}
+                          >
+                            {isSettled
+                              ? "Settled"
+                              : `৳${Math.abs(balance).toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}`}
+                          </p>
+                        </div>
+                      </div>
                     </li>
                   );
                 })}
