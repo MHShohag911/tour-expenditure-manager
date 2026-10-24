@@ -5,6 +5,7 @@ export type Member = {
 };
 
 export type Expense = {
+  id: string;
   description: string;
   amount: number;
   payerName: string;
@@ -26,6 +27,7 @@ export type Group = {
   _id: string;
   name: string;
   isDisabled: boolean;
+  isFinished?: boolean;
   members: Member[];
   expenses: Expense[];
 };

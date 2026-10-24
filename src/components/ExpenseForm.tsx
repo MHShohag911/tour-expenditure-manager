@@ -2,16 +2,7 @@
 "use client";
 
 import { useState } from "react";
-
-type Member = {
-  name: string;
-};
-
-type Group = {
-  _id: string;
-  isDisabled: boolean;
-  members: Member[];
-};
+import type { Group, Member } from "@/types/group";
 
 type Share = {
   memberName: string;
@@ -240,15 +231,18 @@ const ExpenseForm = ({
       return;
     }
 
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const hours = String(now.getHours()).padStart(2, "0");
-    const minutes = String(now.getMinutes()).padStart(2, "0");
 
-    const currentDateTime =
-      `${year}-${month}-${day}T${hours}:${minutes}`;
+    const currentDateTime = new Date().toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+
+    // console.log(currentDateTime);
 
     onAddExpense(
       groupId,
@@ -281,8 +275,8 @@ const ExpenseForm = ({
     <div className="space-y-6">
       {/* Add Expense */}
       <section>
-        <h2 className="mb-4 text-xl font-bold text-black">
-          Add Expense
+        <h2 className="mb-4 font-bold text-black mt-5">
+          Add Expenses
         </h2>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -301,7 +295,7 @@ const ExpenseForm = ({
               onChange={(event) => setDescription(event.target.value)}
               placeholder="e.g. Hotel booking"
               className={inputClassName}
-              disabled={!currentGroup?.isDisabled}
+              disabled={!currentGroup?.isDisabled || Boolean(currentGroup?.isFinished)}
             />
           </div>
 
@@ -322,7 +316,7 @@ const ExpenseForm = ({
               onChange={(event) => setAmount(event.target.value)}
               placeholder="Enter amount"
               className={inputClassName}
-              disabled={!currentGroup?.isDisabled}
+              disabled={!currentGroup?.isDisabled || Boolean(currentGroup?.isFinished)}
             />
           </div>
 
@@ -339,7 +333,7 @@ const ExpenseForm = ({
               value={payerName}
               onChange={(event) => setPayerName(event.target.value)}
               className={`${inputClassName} h-12`}
-              disabled={!currentGroup?.isDisabled}
+              disabled={!currentGroup?.isDisabled || Boolean(currentGroup?.isFinished)}
             >
               <option value="">Select payer</option>
               {members.map((member, index) => (
@@ -424,7 +418,7 @@ const ExpenseForm = ({
                           onChange={() =>
                             handleCustomToggle(member.name)
                           }
-                          disabled={!currentGroup?.isDisabled}
+                          disabled={!currentGroup?.isDisabled || Boolean(currentGroup?.isFinished)}
                         />
                         Custom
                       </label>
@@ -486,7 +480,7 @@ const ExpenseForm = ({
 
         <button
           type="button"
-          disabled={!currentGroup?.isDisabled}
+          disabled={!currentGroup?.isDisabled || Boolean(currentGroup?.isFinished)}
           onClick={handleAddExpense}
           className={`${buttonClassName} mt-3`}
         >

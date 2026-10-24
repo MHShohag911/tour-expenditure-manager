@@ -1,4 +1,3 @@
-
 import { ObjectId, type Document } from "mongodb";
 import { randomUUID } from "crypto";
 import clientPromise from "@/lib/mongodb";
@@ -21,45 +20,10 @@ type Expense = {
     shares?: Share[];
 };
 
-
-type DebtAdjustment = {
-    debtId: string;
-    amount: number;
-};
-
-type OutstandingDebt = {
-    id: string;
-    expenseId: string;
-    fromMember: string;
-    toMember: string;
-    originalAmount: number;
-    settledAmount: number;
-    time: string;
-    adjustments?: DebtAdjustment[];
-};
-
-
-type AccountTransaction = {
-    id: string;
-    type:
-    | "deposit"
-    | "expense_deduction"
-    | "expense_credit"
-    | "settlement"
-    | "debt_netting";
-    amount: number;
-    description: string;
-    time: string;
-    balanceAfter: number;
-    relatedExpenseId?: string;
-};
-
 type Member = {
     name: string;
     totalPaid: number;
     totalOwed: number;
-    accountBalance?: number;
-    accountTransactions?: AccountTransaction[];
 };
 
 type ExtraCharge = {
@@ -73,20 +37,45 @@ type GroupDocument = Document & {
     members?: Member[];
     expenses?: Expense[];
     extraCharges?: ExtraCharge[];
-    settlements?: {
-        id: string;
-        fromMember: string;
-        toMember: string;
-        amount: number;
-        time: string;
-        relatedExpenseId: string;
-        depositTransactionId?: string;
-    }[];
-    outstandingDebts?: OutstandingDebt[];
 };
 
 const toCents = (amount: number) => Math.round(amount * 100);
 const fromCents = (cents: number) => cents / 100;
+
+// Parse legacy "dd/mm/yyyy, hh:mm:ss am/pm" display strings into ISO.
+// Returns null when the string doesn't match the expected format.
+const parseLegacyTime = (value: string): string | null => {
+    if (typeof value !== "string") return null;
+
+    const match = value
+        .trim()
+        .match(
+            /^(\d{1,2})\/(\d{1,2})\/(\d{4}),\s*(\d{1,2}):(\d{2}):(\d{2})\s*(am|pm)$/i,
+        );
+
+    if (!match) return null;
+
+    const [, dd, mm, yyyy, hh, min, ss, meridiem] = match;
+    let hour = Number(hh);
+    const isPm = meridiem.toLowerCase() === "pm";
+    const isAm = meridiem.toLowerCase() === "am";
+
+    if (isPm && hour !== 12) hour += 12;
+    if (isAm && hour === 12) hour = 0;
+
+    const date = new Date(
+        Number(yyyy),
+        Number(mm) - 1,
+        Number(dd),
+        hour,
+        Number(min),
+        Number(ss),
+    );
+
+    if (Number.isNaN(date.getTime())) return null;
+
+    return date.toISOString();
+};
 
 export async function POST(
     request: Request,
@@ -200,8 +189,6 @@ export async function POST(
             );
         }
 
-        const settlements = [...(group.settlements ?? [])];
-
         if (group.isFinished === true) {
             return Response.json(
                 { message: "Cannot add an expense to a finished tour." },
@@ -229,296 +216,23 @@ export async function POST(
         const expenseId = randomUUID();
         const transactionTime = new Date().toISOString();
 
-        const updatedMembers = members.map((member) => ({
-            ...member,
-            accountBalance: Math.max(
-                0,
-                toCents(member.accountBalance ?? 0),
-            ) / 100,
-            accountTransactions: [...(member.accountTransactions ?? [])],
-        }));
+        // Lazy migration: ensure every existing expense has a stable id
+        // and a sortable createdAt. New expense is appended after this.
+        const existingExpenses = (group.expenses ?? []).map((item) => {
+            const hasId = typeof item.id === "string" && item.id.length > 0;
+            const hasCreatedAt =
+                typeof item.createdAt === "string" && item.createdAt.length > 0;
 
-        const shareByMember = new Map(
-            shares.map((share) => [share.memberName, toCents(share.amount)]),
-        );
+            if (hasId && hasCreatedAt) return item;
 
-
-
-        const uncoveredShares = new Map<string, number>();
-
-        const debts: OutstandingDebt[] = (
-            group.outstandingDebts ?? []
-        ).map((debt) => ({ ...debt }));
-
-        const payer = updatedMembers.find(
-            (member) => member.name === payerName,
-        )!;
-
-        // Track new debt credits so we can reconcile them without
-        // accidentally using unrelated deposited funds.
-        const creditPools = new Map<
-            string,
-            {
-                remainingCents: number;
-                balanceCreditRemainingCents: number;
-            }
-        >();
-
-        // Deduct each member's share from their available A/C balance.
-        for (const member of updatedMembers) {
-            const shareCents = shareByMember.get(member.name)!;
-            const availableCents = toCents(member.accountBalance ?? 0);
-            const deductionCents = Math.min(
-                availableCents,
-                shareCents,
-            );
-            const uncoveredCents = shareCents - deductionCents;
-
-            member.accountBalance = fromCents(
-                availableCents - deductionCents,
-            );
-
-            uncoveredShares.set(member.name, uncoveredCents);
-
-            if (deductionCents > 0) {
-                member.accountTransactions!.push({
-                    id: randomUUID(),
-                    type: "expense_deduction",
-                    amount: fromCents(deductionCents),
-                    description: `A/C deduction: ${description}`,
-                    time: transactionTime,
-                    balanceAfter: member.accountBalance,
-                    relatedExpenseId: expenseId,
-                });
-
-                // Using A/C credit to pay this expense payer also
-                // reduces any debt this payer already owes the member.
-                if (member.name !== payerName) {
-                    let remainingOffsetCents = deductionCents;
-
-                    const debtsToOffset = debts
-                        .filter(
-                            (debt) =>
-                                debt.fromMember === payerName &&
-                                debt.toMember === member.name,
-                        )
-                        .sort((a, b) => a.time.localeCompare(b.time));
-
-                    for (const debt of debtsToOffset) {
-                        if (remainingOffsetCents <= 0) break;
-
-                        const outstandingCents =
-                            toCents(debt.originalAmount) -
-                            toCents(debt.settledAmount);
-
-                        if (outstandingCents <= 0) continue;
-
-                        const offsetCents = Math.min(
-                            remainingOffsetCents,
-                            outstandingCents,
-                        );
-
-
-                        debt.settledAmount = fromCents(
-                            toCents(debt.settledAmount) + offsetCents,
-                        );
-
-                        debt.adjustments = [
-                            ...(debt.adjustments ?? []),
-                            {
-                                debtId: expenseId,
-                                amount: fromCents(offsetCents),
-                            },
-                        ];
-
-                        remainingOffsetCents -= offsetCents;
-
-                    }
-                }
-
-            }
-        }
-
-        // Record each unpaid share as a debt to the expense payer.
-        for (const member of updatedMembers) {
-            if (member.name === payerName) continue;
-
-            const debtCents = uncoveredShares.get(member.name) ?? 0;
-
-            if (debtCents <= 0) continue;
-
-            const debtId = randomUUID();
-
-            debts.push({
-                id: debtId,
-                expenseId,
-                fromMember: member.name,
-                toMember: payerName,
-                originalAmount: fromCents(debtCents),
-                settledAmount: 0,
-                time: transactionTime,
-            });
-
-            payer.accountBalance = fromCents(
-                toCents(payer.accountBalance ?? 0) + debtCents,
-            );
-
-            payer.accountTransactions!.push({
-                id: randomUUID(),
-                type: "expense_credit",
-                amount: fromCents(debtCents),
-                description: `A/C credit: ${description} (${member.name}'s share)`,
-                time: transactionTime,
-                balanceAfter: payer.accountBalance,
-                relatedExpenseId: expenseId,
-            });
-
-            creditPools.set(debtId, {
-                remainingCents: debtCents,
-                balanceCreditRemainingCents: debtCents,
-            });
-        }
-
-        // Reconcile debt chains such as Mamun -> Kawsar -> Shohag.
-        // The intermediary's newly created A/C credit is redirected,
-        // while the original creditor keeps their existing credit.
-        while (true) {
-            let reconciled = false;
-
-            for (const [incomingDebtId, pool] of creditPools) {
-                if (pool.remainingCents <= 0) continue;
-
-                const incomingDebt = debts.find(
-                    (debt) => debt.id === incomingDebtId,
-                );
-
-                if (!incomingDebt) continue;
-
-                const incomingOutstanding =
-                    toCents(incomingDebt.originalAmount) -
-                    toCents(incomingDebt.settledAmount);
-
-                if (incomingOutstanding <= 0) continue;
-
-                const intermediary = incomingDebt.toMember;
-
-                const outgoingDebt = debts.find(
-                    (debt) =>
-                        debt.id !== incomingDebt.id &&
-                        debt.fromMember === intermediary &&
-                        toCents(debt.originalAmount) -
-                        toCents(debt.settledAmount) >
-                        0,
-                );
-
-                if (!outgoingDebt) continue;
-
-                const outgoingOutstanding =
-                    toCents(outgoingDebt.originalAmount) -
-                    toCents(outgoingDebt.settledAmount);
-
-                const netCents = Math.min(
-                    pool.remainingCents,
-                    incomingOutstanding,
-                    outgoingOutstanding,
-                );
-
-                if (netCents <= 0) continue;
-
-
-                incomingDebt.settledAmount = fromCents(
-                    toCents(incomingDebt.settledAmount) + netCents,
-                );
-
-                incomingDebt.adjustments = [
-                    ...(incomingDebt.adjustments ?? []),
-                    {
-                        debtId: expenseId,
-                        amount: fromCents(netCents),
-                    },
-                ];
-
-                outgoingDebt.settledAmount = fromCents(
-                    toCents(outgoingDebt.settledAmount) + netCents,
-                );
-
-                outgoingDebt.adjustments = [
-                    ...(outgoingDebt.adjustments ?? []),
-                    {
-                        debtId: expenseId,
-                        amount: fromCents(netCents),
-                    },
-                ];
-
-
-                pool.remainingCents -= netCents;
-
-                const intermediaryMember = updatedMembers.find(
-                    (member) => member.name === intermediary,
-                );
-
-                if (!intermediaryMember) {
-                    throw new Error(
-                        `Member not found during debt reconciliation: ${intermediary}`,
-                    );
-                }
-
-                const balanceReductionCents = Math.min(
-                    netCents,
-                    pool.balanceCreditRemainingCents,
-                    toCents(intermediaryMember.accountBalance ?? 0),
-                );
-
-                if (balanceReductionCents > 0) {
-                    intermediaryMember.accountBalance = fromCents(
-                        toCents(intermediaryMember.accountBalance ?? 0) -
-                        balanceReductionCents,
-                    );
-
-                    intermediaryMember.accountTransactions!.push({
-                        id: randomUUID(),
-                        type: "debt_netting",
-                        amount: fromCents(balanceReductionCents),
-                        description: `A/C credit redirected to ${outgoingDebt.toMember}`,
-                        time: transactionTime,
-                        balanceAfter: intermediaryMember.accountBalance,
-                        relatedExpenseId: expenseId,
-                    });
-
-                    pool.balanceCreditRemainingCents -=
-                        balanceReductionCents;
-                }
-
-                // If the debt forms a cycle (A -> B -> A), it cancels
-                // without creating a debt from a member to themselves.
-                if (incomingDebt.fromMember !== outgoingDebt.toMember) {
-                    const replacementDebtId = randomUUID();
-
-                    debts.push({
-                        id: replacementDebtId,
-                        expenseId,
-                        fromMember: incomingDebt.fromMember,
-                        toMember: outgoingDebt.toMember,
-                        originalAmount: fromCents(netCents),
-                        settledAmount: 0,
-                        time: transactionTime,
-                    });
-
-                    // This replacement carries the debt chain forward,
-                    // but does not create another A/C balance credit.
-                    creditPools.set(replacementDebtId, {
-                        remainingCents: netCents,
-                        balanceCreditRemainingCents: 0,
-                    });
-                }
-
-                reconciled = true;
-                break;
-            }
-
-            if (!reconciled) break;
-        }
-
+            return {
+                ...item,
+                id: hasId ? item.id : randomUUID(),
+                createdAt: hasCreatedAt
+                    ? item.createdAt
+                    : parseLegacyTime(item.time) ?? transactionTime,
+            };
+        });
 
         const expense: Expense = {
             id: expenseId,
@@ -530,11 +244,11 @@ export async function POST(
             shares,
         };
 
-        const expenses = [...(group.expenses ?? []), expense];
+        const expenses = [...existingExpenses, expense];
         const extraCharges = group.extraCharges ?? [];
 
         // Preserve gross expense totals and existing extra-charge behavior.
-        for (const member of updatedMembers) {
+        const updatedMembers = members.map((member) => {
             const grossPaidCents = expenses.reduce(
                 (sum, item) =>
                     sum +
@@ -574,18 +288,20 @@ export async function POST(
                 0,
             );
 
-            member.totalPaid = fromCents(grossPaidCents + extraPaidCents);
-            member.totalOwed = fromCents(grossOwedCents + extraOwedCents);
-        }
+            return {
+                ...member,
+                totalPaid: fromCents(grossPaidCents + extraPaidCents),
+                totalOwed: fromCents(grossOwedCents + extraOwedCents),
+            };
+        });
 
         const result = await collection.updateOne(
             { _id: groupId, isFinished: { $ne: true } },
             {
                 $set: {
+                    id,
                     members: updatedMembers,
                     expenses,
-                    outstandingDebts: debts,
-                    settlements,
                 },
             },
         );

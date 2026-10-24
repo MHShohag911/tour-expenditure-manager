@@ -2,7 +2,6 @@
 
 import type {
   Group,
-  Expense,
 } from "@/types/group";
 import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
@@ -106,67 +105,27 @@ export default function Home() {
       return;
     }
 
-    const newExpense: Expense = {
-      description: upperCase(description),
-      amount: Number(amount),
-      payerName,
-      time: currentDateTime,
-      shares,
-    };
-
-    const newExpenses = [...currentGroup.expenses, newExpense];
-
-    // Calculate each member's total owed using individual shares.
-    // Older expenses without shares use an equal split.
-    const updatedMembers = currentGroup.members.map((member) => {
-      const totalOwed = newExpenses.reduce((sum, expense) => {
-        if (expense.shares?.length) {
-          const memberShare = expense.shares.find(
-            (share) =>
-              share.memberName.toLowerCase() ===
-              member.name.toLowerCase(),
-          );
-
-          return sum + (memberShare?.amount ?? 0);
-        }
-
-        // Backward compatibility for older expenses.
-        return sum + expense.amount / currentGroup.members.length;
-      }, 0);
-
-      const totalPaid = newExpenses.reduce((sum, expense) => {
-        return expense.payerName.toLowerCase() ===
-          member.name.toLowerCase()
-          ? sum + Number(expense.amount)
-          : sum;
-      }, 0);
-
-      return {
-        ...member,
-        totalOwed: Number(totalOwed.toFixed(2)),
-        totalPaid: Number(totalPaid.toFixed(2)),
-      };
-    });
-
-    const updatedGroup = {
-      ...currentGroup,
-      members: updatedMembers,
-      expenses: newExpenses,
-    };
-
     try {
-      await axiosSecure.put(
-        `/teamDB/${groupId}/group`,
-        updatedGroup,
-      );
+      await axiosSecure.post(`/teamDB/${groupId}/expenses`, {
+        description: upperCase(description),
+        amount: Number(amount),
+        payerName,
+        time: currentDateTime,
+        shares,
+      });
 
       const response = await axiosSecure.get<Group[]>("/teamDB");
       setGroups(response.data);
 
       await Swal.fire(
-        "Expense added!",
-        "The expense has been saved successfully.",
-        "success",
+        {
+          icon: "success",
+          title: "Expense added!",
+          text: "The expense has been saved successfully.",
+          showConfirmButton: false,
+          timer: 1500
+        }
+
       );
     } catch (error) {
       console.error("Failed to add expense:", error);
@@ -205,6 +164,8 @@ export default function Home() {
           title: "Congrats!",
           text: `${group.name} group has been set.`,
           icon: "success",
+          showConfirmButton: false,
+          timer: 1500
         });
       }
 
@@ -215,6 +176,42 @@ export default function Home() {
       Swal.fire("Error", "Could not set the group.", "error");
     }
   };
+
+  const handleFinishTour = async (groupId: string) => {
+  const group = currGroup(groupId);
+
+  if (!group) return;
+
+  const result = await Swal.fire({
+    title: "Finish tour?",
+    text: "No more expenses or deposits can be added after this.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#15D8B3",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, finish it!",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await axiosSecure.patch(`/teamDB/${groupId}/finishTour`);
+
+    const response = await axiosSecure.get<Group[]>("/teamDB");
+    setGroups(response.data);
+
+    await Swal.fire({
+      title: "Tour finished",
+      text: `${group.name} has been locked.`,
+      icon: "success",
+      showConfirmButton: false,
+      timer: 1500
+    });
+  } catch (error) {
+    console.error("Failed to finish tour:", error);
+    await Swal.fire("Error", "Could not finish the tour.", "error");
+  }
+};
 
   useEffect(() => {
     let cancelled = false;
@@ -259,6 +256,7 @@ export default function Home() {
           onAddMember={addMember}
           onAddExpense={addExpense}
           handleSetGroup={handleSetGroup}
+          handleFinishTour={handleFinishTour}
         />
       </main>
 

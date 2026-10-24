@@ -14,6 +14,7 @@ type GroupListProps = {
   setGroups: Dispatch<SetStateAction<Group[]>>;
   onAddMember: (groupId: string, memberName: string) => void;
   handleSetGroup: (groupId: string) => void;
+  handleFinishTour: (groupId: string) => void;
   onAddExpense: (
     groupId: string,
     description: string,
@@ -22,13 +23,13 @@ type GroupListProps = {
     currentDateTime: string,
     shares: { memberName: string; amount: number }[]
   ) => void;
-/* 
-  onAddExtraCharge: (
-    groupId: string,
-    extraAmount: number,
-    paidBy: string,
-    owedBy: string
-  ) => void; */
+  /* 
+    onAddExtraCharge: (
+      groupId: string,
+      extraAmount: number,
+      paidBy: string,
+      owedBy: string
+    ) => void; */
 };
 
 const GroupList = ({
@@ -37,6 +38,7 @@ const GroupList = ({
   onAddMember,
   onAddExpense,
   handleSetGroup,
+  handleFinishTour
   // onAddExtraCharge,
 }: GroupListProps) => {
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
@@ -69,7 +71,7 @@ const GroupList = ({
       text: "Are you sure you want to delete this group?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#15D8B3",
       cancelButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!",
     });
@@ -84,6 +86,8 @@ const GroupList = ({
         title: "Deleted!",
         text: `${group.name} has been deleted.`,
         icon: "success",
+        showConfirmButton: false,
+        timer: 1500
       });
     } catch (error) {
       console.error("Error deleting group:", error);
@@ -100,6 +104,7 @@ const GroupList = ({
     index: number,
     groupId: string,
   ) => {
+    console.log(index, groupId)
     const result = await Swal.fire({
       title: "Delete member?",
       text: "Are you sure you want to remove this member?",
@@ -117,6 +122,14 @@ const GroupList = ({
       );
 
       await refreshGroups();
+
+      Swal.fire({
+        title: "Deleted",
+        text: 'Successfully deleted the member.',
+        icon: "success",
+        showConfirmButton: false,
+        timer: 1500
+      });
     } catch (error) {
       console.error("Error deleting member:", error);
 
@@ -124,6 +137,7 @@ const GroupList = ({
         title: "Error",
         text: "Unable to delete the member. Please try again.",
         icon: "error",
+        // showConfirmButton: false,
       });
     }
   };
@@ -152,6 +166,16 @@ const GroupList = ({
                   </button>
                 )}
 
+                {group.isDisabled && !group.isFinished && (
+                  <button
+                    type="button"
+                    onClick={() => handleFinishTour(group._id)}
+                    className="rounded-md bg-[#090040] px-4 py-2 text-white transition hover:bg-[#20116b]"
+                  >
+                    Finish Tour
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => handleDeleteGroup(group._id)}
@@ -159,6 +183,7 @@ const GroupList = ({
                 >
                   Delete Group
                 </button>
+
               </div>
             </div>
 
@@ -168,7 +193,7 @@ const GroupList = ({
                 aria-label={`Member name for ${group.name}`}
                 placeholder="Member Name"
                 value={memberNames[group._id] || ""}
-                disabled={group.isDisabled}
+                disabled={group.isDisabled || group.isFinished}
                 onChange={(event) =>
                   setMemberNames((previous) => ({
                     ...previous,
@@ -186,7 +211,7 @@ const GroupList = ({
 
               <button
                 type="button"
-                disabled={group.isDisabled}
+                disabled={group.isDisabled || group.isFinished}
                 onClick={() => handleAddMember(group._id)}
                 className="rounded-md bg-[#090040] px-4 py-3 text-white transition hover:bg-[#20116b] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -195,9 +220,9 @@ const GroupList = ({
             </div>
 
             <div>
-              <h3 className="mx-5 font-bold text-black">Members:</h3>
+              <h3 className="font-bold text-black">Members:</h3>
 
-              <ul className="mx-5">
+              <ul>
                 {group.members.map((member, index) => {
                   const balance = member.totalPaid - member.totalOwed;
 
@@ -235,18 +260,20 @@ const GroupList = ({
             </div>
 
             <div className="space-y-5">
-              <ExpenseForm
-                groups={groups}
-                groupId={group._id}
-                onAddExpense={onAddExpense}
-                // onAddExtraCharge={onAddExtraCharge}
-              />
+              {!group.isFinished && (
+                <ExpenseForm
+                  groups={groups}
+                  groupId={group._id}
+                  onAddExpense={onAddExpense}
+                />
+              )}
 
               <ExpenseList
                 groupId={group._id}
                 groups={groups}
                 group={group}
                 expenses={group.expenses}
+                isFinished={group.isFinished}
                 expenseId={group._id}
                 // extraCharges={group.extraCharges}
                 onRefresh={refreshGroups}

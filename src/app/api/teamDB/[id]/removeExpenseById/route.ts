@@ -1,6 +1,6 @@
-
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
+import { randomUUID } from "crypto";
 import clientPromise from "@/lib/mongodb";
 
 const DATABASE_NAME = "Tour-Expenditure-Management";
@@ -11,10 +11,12 @@ type RouteContext = {
 };
 
 type ExpenseRecord = {
+  id?: string;
   description: string;
   amount: number;
   payerName: string;
   time: string;
+  createdAt?: string;
   shares?: {
     memberName: string;
     amount: number;
@@ -33,6 +35,42 @@ type ExtraChargeRecord = {
   owedBy: string;
 };
 
+const toCents = (amount: number) => Math.round(amount * 100);
+const fromCents = (cents: number) => cents / 100;
+
+const parseLegacyTime = (value: string): string | null => {
+  if (typeof value !== "string") return null;
+
+  const match = value
+    .trim()
+    .match(
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4}),\s*(\d{1,2}):(\d{2}):(\d{2})\s*(am|pm)$/i,
+    );
+
+  if (!match) return null;
+
+  const [, dd, mm, yyyy, hh, min, ss, meridiem] = match;
+  let hour = Number(hh);
+  const isPm = meridiem.toLowerCase() === "pm";
+  const isAm = meridiem.toLowerCase() === "am";
+
+  if (isPm && hour !== 12) hour += 12;
+  if (isAm && hour === 12) hour = 0;
+
+  const date = new Date(
+    Number(yyyy),
+    Number(mm) - 1,
+    Number(dd),
+    hour,
+    Number(min),
+    Number(ss),
+  );
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toISOString();
+};
+
 export async function DELETE(
   request: Request,
   { params }: RouteContext
@@ -40,8 +78,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    const rawIndex = searchParams.get("index");
-    const index = Number(rawIndex);
+    const expenseId = searchParams.get("expenseId");
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -50,13 +87,9 @@ export async function DELETE(
       );
     }
 
-    if (
-      rawIndex === null ||
-      !Number.isInteger(index) ||
-      index < 0
-    ) {
+    if (!expenseId) {
       return NextResponse.json(
-        { message: "Invalid expense index." },
+        { message: "Missing expense ID." },
         { status: 400 }
       );
     }
@@ -77,76 +110,95 @@ export async function DELETE(
       );
     }
 
-    const expenses = (group.expenses ?? []) as ExpenseRecord[];
+    const rawExpenses = (group.expenses ?? []) as ExpenseRecord[];
     const members = (group.members ?? []) as MemberRecord[];
     const extraCharges = (group.extraCharges ?? []) as ExtraChargeRecord[];
 
-    if (index >= expenses.length) {
+    const now = new Date().toISOString();
+
+    // Ensure legacy expenses have stable ids so they can be targeted.
+    const expenses = rawExpenses.map((item) => {
+      const hasId = typeof item.id === "string" && item.id.length > 0;
+      const hasCreatedAt =
+        typeof item.createdAt === "string" && item.createdAt.length > 0;
+
+      if (hasId && hasCreatedAt) return item;
+
+      return {
+        ...item,
+        id: hasId ? item.id : randomUUID(),
+        createdAt: hasCreatedAt
+          ? item.createdAt
+          : parseLegacyTime(item.time) ?? now,
+      };
+    });
+
+    const targetIndex = expenses.findIndex(
+      (expense) => expense.id === expenseId
+    );
+
+    if (targetIndex === -1) {
       return NextResponse.json(
         { message: "Expense not found." },
         { status: 404 }
       );
     }
 
-    // Remove the selected expense.
     const remainingExpenses = expenses.filter(
-      (_, i) => i !== index
+      (_, i) => i !== targetIndex
     );
 
-    // Recalculate every member's balances.
     const updatedMembers = members.map((member) => {
-      const totalPaidFromExpenses = remainingExpenses.reduce(
+      const totalPaidFromExpensesCents = remainingExpenses.reduce(
         (total, expense) =>
           expense.payerName === member.name
-            ? total + Number(expense.amount)
+            ? total + toCents(expense.amount)
             : total,
         0
       );
 
-      const totalOwedFromExpenses = remainingExpenses.reduce(
+      const totalOwedFromExpensesCents = remainingExpenses.reduce(
         (total, expense) => {
-          // Use saved individual shares when available.
           if (expense.shares && expense.shares.length > 0) {
             const memberShare = expense.shares.find(
               (share) => share.memberName === member.name
             );
-
-            return total + Number(memberShare?.amount ?? 0);
+            return total + toCents(memberShare?.amount ?? 0);
           }
 
-          // Legacy expenses without shares use equal splitting.
-          if (members.length === 0) {
-            return total;
-          }
+          if (members.length === 0) return total;
 
-          return total + Number(expense.amount) / members.length;
+          return (
+            total + Math.floor(toCents(expense.amount) / members.length)
+          );
         },
         0
       );
 
-      // Preserve extra-charge contributions.
-      const totalPaidFromExtraCharges = extraCharges.reduce(
+      const totalPaidFromExtraChargesCents = extraCharges.reduce(
         (total, charge) =>
           charge.paidBy === member.name
-            ? total + Number(charge.extraAmount)
+            ? total + toCents(charge.extraAmount)
             : total,
         0
       );
 
-      const totalOwedFromExtraCharges = extraCharges.reduce(
+      const totalOwedFromExtraChargesCents = extraCharges.reduce(
         (total, charge) =>
           charge.owedBy === member.name
-            ? total + Number(charge.extraAmount)
+            ? total + toCents(charge.extraAmount)
             : total,
         0
       );
 
       return {
         ...member,
-        totalPaid:
-          totalPaidFromExpenses + totalPaidFromExtraCharges,
-        totalOwed:
-          totalOwedFromExpenses + totalOwedFromExtraCharges,
+        totalPaid: fromCents(
+          totalPaidFromExpensesCents + totalPaidFromExtraChargesCents
+        ),
+        totalOwed: fromCents(
+          totalOwedFromExpensesCents + totalOwedFromExtraChargesCents
+        ),
       };
     });
 
