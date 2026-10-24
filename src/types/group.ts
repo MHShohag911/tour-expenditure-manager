@@ -5,6 +5,7 @@ export type Member = {
 };
 
 export type Expense = {
+  id: string;
   description: string;
   amount: number;
   payerName: string;

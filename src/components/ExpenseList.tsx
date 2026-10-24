@@ -1,6 +1,6 @@
 import Swal from "sweetalert2";
 import { axiosSecure } from "../hooks/useAxiosSecure";
-import type { Group, Expense, /* ExtraCharge */ } from "@/types/group";
+import type { Group, Expense } from "@/types/group";
 
 type ExpenseListProps = {
   groupId: string;
@@ -8,19 +8,25 @@ type ExpenseListProps = {
   group: Group;
   expenses: Expense[];
   expenseId: string;
-  // extraCharges: ExtraCharge[];
   onRefresh: () => Promise<void>;
 };
 
-
 const ExpenseList = ({
   groupId,
-  group,
   expenses,
   onRefresh,
 }: ExpenseListProps) => {
+  const handleDelete = async (expense: Expense) => {
+    console.log(expense)
+    if (!expense.id) {
+      await Swal.fire({
+        title: "Cannot delete",
+        text: "This expense has no ID yet. Add a new expense first to migrate old ones.",
+        icon: "error",
+      });
+      return;
+    }
 
-  const handleDelete = async (index: number) => {
     try {
       const result = await Swal.fire({
         title: "Are you sure?",
@@ -32,42 +38,31 @@ const ExpenseList = ({
         confirmButtonText: "Yes, delete it!",
       });
 
-      if (result.isConfirmed) {
-        // Delete expense from DB
-        await axiosSecure.delete(
-          `/teamDB/${groupId}/removeExpenseByIndex`,
-          { params: { index } }
-        );
-        Swal.fire({
-          title: "Deleted!",
-          text: "Your file has been deleted.",
-          icon: "success",
-        });
-        await onRefresh();
+      if (!result.isConfirmed) return;
 
-        // Calculate share to deduct
-        const deletedAmount = group.expenses[index].amount;
-        const splitAmount = deletedAmount / group.members.length;
+      await axiosSecure.delete(
+        `/teamDB/${groupId}/removeExpenseById`,
+        { params: { expenseId: expense.id } }
+      );
 
-        // Create updated group
-        const updatedGroup = { ...group };
-        updatedGroup.members = updatedGroup.members.map((member) => ({
-          ...member,
-          totalPaid:
-            member.name === group.expenses[index].payerName
-              ? member.totalPaid - deletedAmount
-              : member.totalPaid,
-          totalOwed: member.totalOwed - splitAmount,
-        }));
+      await onRefresh();
 
-        // Send PATCH request to update group
-        await axiosSecure.patch(
-          `/teamDB/${groupId}/updatedGroup`,
-          updatedGroup
-        );
-      }
+      await Swal.fire({
+        title: "Deleted!",
+        text: "The expense has been deleted.",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 1500
+      });
+
+      
     } catch (err) {
-      console.error("Error deleting or updating group:", err);
+      console.error("Error deleting expense:", err);
+      await Swal.fire({
+        title: "Error",
+        text: "Could not delete the expense.",
+        icon: "error",
+      });
     }
   };
 
@@ -76,7 +71,10 @@ const ExpenseList = ({
       <p className="font-bold text-black">Expense Details:</p>
       <ul>
         {expenses.map((expense, index) => (
-          <li className="flex justify-between items-center" key={index}>
+          <li
+            className="flex justify-between items-center"
+            key={expense.id ?? `${expense.description}-${expense.time}`}
+          >
             <div className="flex flex-col mt-3">
               <div>
                 <span className="font-bold">{index + 1}. </span>
@@ -88,7 +86,7 @@ const ExpenseList = ({
             <button
               type="button"
               className="rounded-md bg-purple-700 px-4 py-2 text-white hover:bg-purple-800"
-              onClick={() => handleDelete(index)}
+              onClick={() => handleDelete(expense)}
             >
               Delete
             </button>
