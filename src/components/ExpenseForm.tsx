@@ -7,6 +7,7 @@ import type { Group, Member } from "@/types/group";
 type Share = {
   memberName: string;
   amount: number;
+  note?: string;
 };
 
 type ExpenseFormProps = {
@@ -34,6 +35,7 @@ const ExpenseForm = ({
   const [shareAmounts, setShareAmounts] = useState<
     Record<string, string>
   >({});
+  const [shareNotes, setShareNotes] = useState<Record<string, string>>({});
   const [customMembers, setCustomMembers] = useState<
     Record<string, boolean>
   >({});
@@ -201,10 +203,15 @@ const ExpenseForm = ({
       return;
     }
 
-    const shares: Share[] = members.map((member) => ({
-      memberName: member.name,
-      amount: Number(displayedShares[member.name]),
-    }));
+    const shares: Share[] = members.map((member) => {
+      const isCustom = splitMode === "custom" && Boolean(customMembers[member.name]);
+      const note = isCustom ? (shareNotes[member.name] ?? "").trim() : "";
+      return {
+        memberName: member.name,
+        amount: Number(displayedShares[member.name]),
+        ...(note ? { note } : {}),
+      };
+    });
 
     const hasInvalidShare = shares.some(
       (share) =>
@@ -260,6 +267,7 @@ const ExpenseForm = ({
     setShareAmounts({});
     setCustomMembers({});
     setSplitMode("equal");
+    setShareNotes({});
   };
 
   const totalSharesCents = members.reduce(
@@ -452,6 +460,22 @@ const ExpenseForm = ({
                       !isCustom
                     }
                   />
+
+                  {splitMode === "custom" && isCustom && (
+                    <input
+                      type="text"
+                      value={shareNotes[member.name] ?? ""}
+                      onChange={(event) =>
+                        setShareNotes((previous) => ({
+                          ...previous,
+                          [member.name]: event.target.value,
+                        }))
+                      }
+                      placeholder="Note (e.g. extra item)"
+                      disabled={!currentGroup?.isDisabled || Boolean(currentGroup?.isFinished)}
+                      className={`${inputClassName} mt-2 text-xs`}
+                    />
+                  )}
 
                   {splitMode === "custom" && (
                     <p className="mt-1 text-xs text-gray-500">

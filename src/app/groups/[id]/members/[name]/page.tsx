@@ -172,10 +172,10 @@ export default async function MemberPage({ params }: PageProps) {
                     <p className="text-xs uppercase text-gray-500">Net</p>
                     <p
                         className={`text-lg font-semibold ${Math.abs(net) < 0.005
-                                ? "text-gray-600"
-                                : net > 0
-                                    ? "text-green-600"
-                                    : "text-red-600"
+                            ? "text-gray-600"
+                            : net > 0
+                                ? "text-green-600"
+                                : "text-red-600"
                             }`}
                     >
                         {Math.abs(net) < 0.005
@@ -301,6 +301,11 @@ export default async function MemberPage({ params }: PageProps) {
                                         </span>
                                         <span>{e.time}</span>
                                     </div>
+                                    {myShare?.note ? (
+                                        <div className="mt-1 text-xs italic text-gray-600">
+                                            Note: {myShare.note}
+                                        </div>
+                                    ) : null}
                                 </li>
                             );
                         })}
@@ -363,10 +368,10 @@ export default async function MemberPage({ params }: PageProps) {
                                         </span>
                                         <span
                                             className={`font-semibold ${remaining > 0
-                                                    ? isOwedToThem
-                                                        ? "text-green-600"
-                                                        : "text-red-600"
-                                                    : "text-gray-500 line-through"
+                                                ? isOwedToThem
+                                                    ? "text-green-600"
+                                                    : "text-red-600"
+                                                : "text-gray-500 line-through"
                                                 }`}
                                         >
                                             ৳{fmt(remaining)}

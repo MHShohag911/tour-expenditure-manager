@@ -60,7 +60,7 @@ export type Expense = {
   time: string;
   createdAt?: string;
   sequence?: number;
-  shares?: { memberName: string; amount: number }[];
+  shares?: { memberName: string; amount: number; note?: string }[];
 };
 
 export type ExtraCharge = {
