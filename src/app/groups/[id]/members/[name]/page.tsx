@@ -16,6 +16,21 @@ const fmt = (n: number) =>
         maximumFractionDigits: 2,
     });
 
+const fmtDate = (iso: string | undefined): string => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    return d.toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+    });
+};
+
 export default async function MemberPage({ params }: PageProps) {
     const { id, name } = await params;
     const memberName = decodeURIComponent(name);
@@ -338,7 +353,7 @@ export default async function MemberPage({ params }: PageProps) {
                                     </span>
                                 </div>
                                 <div className="mt-1 text-xs text-gray-500">
-                                    {d.createdAt}
+                                    {fmtDate(d.createdAt)}
                                 </div>
                             </li>
                         ))}

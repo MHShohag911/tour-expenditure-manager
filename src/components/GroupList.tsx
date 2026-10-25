@@ -42,6 +42,7 @@ const GroupList = ({
   onAddDeposit
 }: GroupListProps) => {
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
+  const [openDepositFor, setOpenDepositFor] = useState<string | null>(null);
 
   const refreshGroups = async () => {
     const response = await axiosSecure.get<Group[]>("/teamDB");
@@ -334,47 +335,76 @@ const GroupList = ({
                       </div>
 
                       {group.isDisabled && !group.isFinished && (
-                        <form
-                          className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center"
-                          onSubmit={(event) => {
-                            event.preventDefault();
-                            const form = event.currentTarget;
-                            const data = new FormData(form);
-                            const amount = Number(data.get("amount"));
-                            const description =
-                              String(data.get("description") ?? "").trim() || "A/C deposit";
+                        <div className="mt-4">
+                          {openDepositFor !== `${group._id}:${member.name}` ? (
+                            <div className="text-right">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setOpenDepositFor(`${group._id}:${member.name}`)
+                                }
+                                className="rounded-md border border-[#090040] px-4 py-2 text-sm text-[#090040] transition hover:bg-[#090040] hover:text-white"
+                              >
+                                + Deposit
+                              </button>
+                            </div>
+                          ) : (
+                            <form
+                              className="flex flex-col gap-2 sm:flex-row sm:items-center"
+                              onSubmit={(event) => {
+                                event.preventDefault();
+                                const form = event.currentTarget;
+                                const data = new FormData(form);
+                                const amount = Number(data.get("amount"));
+                                const description =
+                                  String(data.get("description") ?? "").trim() ||
+                                  "A/C deposit";
 
-                            if (!Number.isFinite(amount) || amount <= 0) {
-                              Swal.fire("Invalid amount", "Deposit must be greater than zero.", "error");
-                              return;
-                            }
+                                if (!Number.isFinite(amount) || amount <= 0) {
+                                  Swal.fire(
+                                    "Invalid amount",
+                                    "Deposit must be greater than zero.",
+                                    "error"
+                                  );
+                                  return;
+                                }
 
-                            onAddDeposit(group._id, member.name, amount, description);
-                            form.reset();
-                          }}
-                        >
-                          <input
-                            type="number"
-                            name="amount"
-                            min="0.01"
-                            step="0.01"
-                            placeholder="Amount"
-                            required
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-black outline-none focus:border-[#090040] focus:ring-1 focus:ring-[#090040] sm:w-32"
-                          />
-                          <input
-                            type="text"
-                            name="description"
-                            placeholder="Note (optional)"
-                            className="w-full flex-1 rounded-md border border-gray-300 px-3 py-2 text-black outline-none focus:border-[#090040] focus:ring-1 focus:ring-[#090040]"
-                          />
-                          <button
-                            type="submit"
-                            className="rounded-md bg-[#090040] px-4 py-2 text-white transition hover:bg-[#20116b]"
-                          >
-                            Deposit to A/C
-                          </button>
-                        </form>
+                                onAddDeposit(group._id, member.name, amount, description);
+                                form.reset();
+                                setOpenDepositFor(null);
+                              }}
+                            >
+                              <input
+                                type="number"
+                                name="amount"
+                                min="0.01"
+                                step="0.01"
+                                placeholder="Amount"
+                                required
+                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-black outline-none focus:border-[#090040] focus:ring-1 focus:ring-[#090040] sm:w-32"
+                              />
+                              <input
+                                type="text"
+                                name="description"
+                                placeholder="Note (optional)"
+                                className="w-full flex-1 rounded-md border border-gray-300 px-3 py-2 text-black outline-none focus:border-[#090040] focus:ring-1 focus:ring-[#090040]"
+                              />
+                              <button
+                                type="submit"
+                                className="rounded-md bg-[#090040] px-4 py-2 text-white transition hover:bg-[#20116b]"
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setOpenDepositFor(null)}
+                                className="rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition hover:bg-gray-100"
+                              >
+                                Cancel
+                              </button>
+                            </form>
+                          )}
+                        </div>
                       )}
                     </li>
                   );

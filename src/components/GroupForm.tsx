@@ -32,7 +32,7 @@ export default function GroupForm({ onAddGroup }: GroupFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-3">
+    <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-3 ">
       <input
         type="text"
         value={groupName}
