@@ -1,24 +1,16 @@
-
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
-
-type Member = {
-  name: string;
-  totalPaid: number;
-  totalOwed: number;
-};
-
-type GroupDocument = {
-  name?: string;
-  members: Member[];
-  expenses?: unknown[];
-  extraCharges?: unknown[];
-  isDisabled?: boolean;
-};
+import { mutateGroup } from "@/lib/accounting";
+import type { Group } from "@/types/group";
 
 const DATABASE_NAME = "Tour-Expenditure-Management-Test";
 const COLLECTION_NAME = "TeamDB";
+
+type GroupDocument = {
+  name?: string;
+  isDisabled?: boolean;
+};
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -42,9 +34,7 @@ export async function PATCH(
 
     if (
       typeof member.name !== "string" ||
-      !member.name.trim() ||
-      typeof member.totalPaid !== "number" ||
-      typeof member.totalOwed !== "number"
+      !member.name.trim()
     ) {
       return NextResponse.json(
         { message: "Invalid member data." },
@@ -56,30 +46,77 @@ export async function PATCH(
     const db = client.db(DATABASE_NAME);
     const collection = db.collection<GroupDocument>(COLLECTION_NAME);
 
-    const result = await collection.updateOne(
-  { _id: new ObjectId(id) },
-  {
-    $push: {
-      members: {
-        name: member.name.trim(),
-        totalPaid: member.totalPaid,
-        totalOwed: member.totalOwed,
-      },
-    },
-  }
-);
+    const existing = await collection.findOne({
+      _id: new ObjectId(id),
+    });
 
-    if (result.matchedCount === 0) {
+    if (!existing) {
       return NextResponse.json(
         { message: "Group not found." },
         { status: 404 },
       );
     }
 
+    if (existing.isDisabled === true) {
+      return NextResponse.json(
+        { message: "Cannot add members after the group is set." },
+        { status: 409 },
+      );
+    }
+
+    const trimmedName = member.name.trim();
+    let added = false;
+
+    try {
+      await mutateGroup(id, (draft: Group) => {
+        if (draft.isDisabled === true) {
+          throw new Error("DISABLED");
+        }
+
+        const members = draft.members ?? [];
+
+        if (
+          members.some(
+            (m) =>
+              m.name.toLowerCase() === trimmedName.toLowerCase(),
+          )
+        ) {
+          throw new Error("DUPLICATE");
+        }
+
+        draft.members = [
+          ...members,
+          {
+            name: trimmedName,
+            totalPaid: 0,
+            totalOwed: 0,
+            accountBalance: 0,
+            accountCreditBalance: 0,
+            accountTransactions: [],
+          },
+        ];
+        added = true;
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message === "DISABLED") {
+        return NextResponse.json(
+          { message: "Cannot add members after the group is set." },
+          { status: 409 },
+        );
+      }
+      if (message === "DUPLICATE") {
+        return NextResponse.json(
+          { message: "Member already exists." },
+          { status: 409 },
+        );
+      }
+      throw error;
+    }
+
     return NextResponse.json({
-      acknowledged: result.acknowledged,
-      matchedCount: result.matchedCount,
-      modifiedCount: result.modifiedCount,
+      message: "Member added.",
+      added,
     });
   } catch (error) {
     console.error("Failed to add member:", error);
