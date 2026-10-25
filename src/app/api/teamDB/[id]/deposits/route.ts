@@ -80,9 +80,10 @@ export async function POST(
     const depositId = randomUUID();
     const depositTime = new Date().toISOString();
     let savedDeposit: Deposit | null = null;
+    let updatedGroup: Group | null = null;
 
     try {
-      await mutateGroup(id, (draft: Group) => {
+      updatedGroup = await mutateGroup(id, (draft: Group) => {
         if (draft.isFinished === true) {
           throw new Error("FINISHED");
         }
@@ -128,6 +129,7 @@ export async function POST(
       {
         message: "Deposit added.",
         deposit: savedDeposit,
+        group: updatedGroup,
       },
       { status: 201 },
     );
@@ -188,9 +190,10 @@ export async function DELETE(
     }
 
     let found = false;
+    let updatedGroup: Group | null = null;
 
     try {
-      await mutateGroup(id, (draft: Group) => {
+      updatedGroup = await mutateGroup(id, (draft: Group) => {
         if (draft.isFinished === true) {
           throw new Error("FINISHED");
         }
@@ -223,6 +226,7 @@ export async function DELETE(
     return Response.json({
       message: "Deposit deleted.",
       deleted: found,
+      group: updatedGroup,
     });
   } catch (error) {
     console.error("Failed to delete deposit:", error);

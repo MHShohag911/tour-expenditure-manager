@@ -1,8 +1,6 @@
 "use client";
 
-import type {
-  Group,
-} from "@/types/group";
+import type { Group } from "@/types/group";
 import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import GroupForm from "@/components/GroupForm";
@@ -10,6 +8,8 @@ import GroupList from "@/components/GroupList";
 import { NavBar } from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
+
+type MutateResponse = { message: string; group?: Group };
 
 export default function Home() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -23,6 +23,13 @@ export default function Home() {
     (id: string) => groups.find((group) => group._id === id),
     [groups],
   );
+
+  const applyGroupUpdate = useCallback((group: Group | undefined) => {
+    if (!group) return;
+    setGroups((previous) =>
+      previous.map((g) => (g._id === group._id ? group : g)),
+    );
+  }, []);
 
   const addGroup = async (groupName: string) => {
     const name = upperCase(groupName.trim());
@@ -69,20 +76,16 @@ export default function Home() {
     }
 
     try {
-      await axiosSecure.patch(`/teamDB/${groupId}/addMember`, {
-        name,
-        totalPaid: 0,
-        totalOwed: 0,
-      });
-
-      const response = await axiosSecure.get<Group[]>("/teamDB");
-      setGroups(response.data);
+      const response = await axiosSecure.patch<MutateResponse>(
+        `/teamDB/${groupId}/addMember`,
+        { name, totalPaid: 0, totalOwed: 0 },
+      );
+      applyGroupUpdate(response.data.group);
     } catch (error) {
       console.error("Failed to add member:", error);
       Swal.fire("Error", "Could not add the member.", "error");
     }
   };
-
 
   const addExpense = async (
     groupId: string,
@@ -106,38 +109,31 @@ export default function Home() {
     }
 
     try {
-      await axiosSecure.post(`/teamDB/${groupId}/expenses`, {
-        description: upperCase(description),
-        amount: Number(amount),
-        payerName,
-        time: currentDateTime,
-        shares,
-      });
-
-      const response = await axiosSecure.get<Group[]>("/teamDB");
-      setGroups(response.data);
-
-      await Swal.fire(
+      const response = await axiosSecure.post<MutateResponse>(
+        `/teamDB/${groupId}/expenses`,
         {
-          icon: "success",
-          title: "Expense added!",
-          text: "The expense has been saved successfully.",
-          showConfirmButton: false,
-          timer: 1500
-        }
-
+          description: upperCase(description),
+          amount: Number(amount),
+          payerName,
+          time: currentDateTime,
+          shares,
+        },
       );
+      applyGroupUpdate(response.data.group);
+
+      await Swal.fire({
+        icon: "success",
+        title: "Expense added!",
+        text: "The expense has been saved successfully.",
+        showConfirmButton: false,
+        timer: 1500,
+      });
     } catch (error) {
       console.error("Failed to add expense:", error);
 
-      await Swal.fire(
-        "Error",
-        "Could not save the expense.",
-        "error",
-      );
+      await Swal.fire("Error", "Could not save the expense.", "error");
     }
   };
-
 
   const handleSetGroup = async (groupId: string) => {
     const group = currGroup(groupId);
@@ -165,7 +161,7 @@ export default function Home() {
           text: `${group.name} group has been set.`,
           icon: "success",
           showConfirmButton: false,
-          timer: 1500
+          timer: 1500,
         });
       }
 
@@ -184,14 +180,11 @@ export default function Home() {
     description: string,
   ) => {
     try {
-      await axiosSecure.post(`/teamDB/${groupId}/deposits`, {
-        memberName,
-        amount,
-        description,
-      });
-
-      const response = await axiosSecure.get<Group[]>("/teamDB");
-      setGroups(response.data);
+      const response = await axiosSecure.post<MutateResponse>(
+        `/teamDB/${groupId}/deposits`,
+        { memberName, amount, description },
+      );
+      applyGroupUpdate(response.data.group);
 
       await Swal.fire({
         title: "Deposit added",
@@ -224,17 +217,17 @@ export default function Home() {
     if (!result.isConfirmed) return;
 
     try {
-      await axiosSecure.patch(`/teamDB/${groupId}/finishTour`);
-
-      const response = await axiosSecure.get<Group[]>("/teamDB");
-      setGroups(response.data);
+      const response = await axiosSecure.patch<MutateResponse>(
+        `/teamDB/${groupId}/finishTour`,
+      );
+      applyGroupUpdate(response.data.group);
 
       await Swal.fire({
         title: "Tour finished",
         text: `${group.name} has been locked.`,
         icon: "success",
         showConfirmButton: false,
-        timer: 1500
+        timer: 1500,
       });
     } catch (error) {
       console.error("Failed to finish tour:", error);

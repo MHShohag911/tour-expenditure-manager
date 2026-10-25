@@ -66,9 +66,10 @@ export async function PATCH(
 
     const trimmedName = member.name.trim();
     let added = false;
+    let updatedGroup: Group | null = null;
 
     try {
-      await mutateGroup(id, (draft: Group) => {
+      updatedGroup = await mutateGroup(id, (draft: Group) => {
         if (draft.isDisabled === true) {
           throw new Error("DISABLED");
         }
@@ -117,6 +118,7 @@ export async function PATCH(
     return NextResponse.json({
       message: "Member added.",
       added,
+      group: updatedGroup,
     });
   } catch (error) {
     console.error("Failed to add member:", error);

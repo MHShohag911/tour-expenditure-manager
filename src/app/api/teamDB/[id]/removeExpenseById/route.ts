@@ -20,7 +20,7 @@ type ExpenseRecord = {
   time: string;
   createdAt?: string;
   sequence?: number;
-  shares?: { memberName: string; amount: number }[];
+  shares?: { memberName: string; amount: number; note?: string }[];
 };
 
 type GroupRecord = {
@@ -86,10 +86,10 @@ export async function DELETE(
     const client = await clientPromise;
     const collection = client
       .db(DATABASE_NAME)
-      .collection(COLLECTION_NAME);
+      .collection<GroupRecord>(COLLECTION_NAME);
 
-    const group = await collection.findOne<GroupRecord>({
-      _id: new ObjectId(id),
+    const group = await collection.findOne({
+      _id: new ObjectId(id)
     });
 
     if (!group) {
@@ -127,15 +127,14 @@ export async function DELETE(
       );
     }
 
-    let remainingExpenses: ExpenseRecord[] = [];
+    let updatedGroup: Group | null = null;
 
     try {
-      await mutateGroup(id, (draft: Group) => {
+      updatedGroup = await mutateGroup(id, (draft: Group) => {
         draft.expenses = normalized;
-        remainingExpenses = normalized.filter(
+        draft.expenses = normalized.filter(
           (expense) => expense.id !== expenseId
         );
-        draft.expenses = remainingExpenses;
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
@@ -150,7 +149,8 @@ export async function DELETE(
 
     return NextResponse.json({
       message: "Expense deleted and balances recalculated.",
-      expenses: remainingExpenses,
+      expenses: updatedGroup?.expenses ?? [],
+      group: updatedGroup,
     });
   } catch (error) {
     console.error("Failed to delete expense:", error);

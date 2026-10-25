@@ -117,10 +117,19 @@ const GroupList = ({
     if (!result.isConfirmed) return;
 
     try {
-      await axiosSecure.delete(
+      const response = await axiosSecure.delete<{ message: string; group?: Group }>(
         `/teamDB/${groupId}/removeMemberByIndex`,
         { params: { index } },
       );
+
+      const updated = response.data.group;
+      if (updated) {
+        setGroups((previous) =>
+          previous.map((g) => (g._id === updated._id ? updated : g)),
+        );
+      } else {
+        await refreshGroups();
+      }
 
       await refreshGroups();
 
