@@ -23,13 +23,12 @@ type GroupListProps = {
     currentDateTime: string,
     shares: { memberName: string; amount: number }[]
   ) => void;
-  /* 
-    onAddExtraCharge: (
-      groupId: string,
-      extraAmount: number,
-      paidBy: string,
-      owedBy: string
-    ) => void; */
+  onAddDeposit: (
+    groupId: string,
+    memberName: string,
+    amount: number,
+    description: string
+  ) => void;
 };
 
 const GroupList = ({
@@ -38,8 +37,8 @@ const GroupList = ({
   onAddMember,
   onAddExpense,
   handleSetGroup,
-  handleFinishTour
-  // onAddExtraCharge,
+  handleFinishTour,
+  onAddDeposit
 }: GroupListProps) => {
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
 
@@ -230,9 +229,25 @@ const GroupList = ({
 
               <ul className="space-y-3">
                 {group.members.map((member, index) => {
-                  const balance = member.totalPaid - member.totalOwed;
-                  const isCreditor = balance > 0;
-                  const isSettled = Math.abs(balance) < 0.005; // ~0
+                  const owedToThem = member.accountCreditBalance ?? 0;
+
+                  const stillOwesOthers =
+                    (group.outstandingDebts ?? [])
+                      .filter((d) => d.fromMember === member.name)
+                      .reduce(
+                        (sum, d) => sum + (d.originalAmount - d.settledAmount),
+                        0
+                      );
+
+                  const net = owedToThem - stillOwesOthers;
+                  const isSettled = Math.abs(net) < 0.005;
+                  const isCreditor = net > 0;
+
+                  const fmt = (n: number) =>
+                    n.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    });
 
                   return (
                     <li
@@ -260,16 +275,13 @@ const GroupList = ({
                         )}
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
                         <div>
                           <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                             Paid
                           </p>
                           <p className="mt-1 text-base font-medium text-gray-900">
-                            ৳{member.totalPaid.toLocaleString("en-US", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
+                            ৳{fmt(member.totalPaid)}
                           </p>
                         </div>
 
@@ -278,10 +290,25 @@ const GroupList = ({
                             Owes
                           </p>
                           <p className="mt-1 text-base font-medium text-gray-900">
-                            ৳{member.totalOwed.toLocaleString("en-US", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
+                            ৳{fmt(member.totalOwed)}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                            A/C Balance
+                          </p>
+                          <p className="mt-1 text-base font-medium text-blue-700">
+                            ৳{fmt(member.accountBalance ?? 0)}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                            Owed to him
+                          </p>
+                          <p className="mt-1 text-base font-medium text-amber-700">
+                            ৳{fmt(owedToThem)}
                           </p>
                         </div>
 
@@ -297,15 +324,54 @@ const GroupList = ({
                                 : "text-red-600"
                               }`}
                           >
-                            {isSettled
-                              ? "Settled"
-                              : `৳${Math.abs(balance).toLocaleString("en-US", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}`}
+                            {isSettled ? "Settled" : `৳${fmt(Math.abs(net))}`}
                           </p>
                         </div>
                       </div>
+
+                      {group.isDisabled && !group.isFinished && (
+  <form
+    className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center"
+    onSubmit={(event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      const amount = Number(data.get("amount"));
+      const description =
+        String(data.get("description") ?? "").trim() || "A/C deposit";
+
+      if (!Number.isFinite(amount) || amount <= 0) {
+        Swal.fire("Invalid amount", "Deposit must be greater than zero.", "error");
+        return;
+      }
+
+      onAddDeposit(group._id, member.name, amount, description);
+      form.reset();
+    }}
+  >
+    <input
+      type="number"
+      name="amount"
+      min="0.01"
+      step="0.01"
+      placeholder="Amount"
+      required
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-black outline-none focus:border-[#090040] focus:ring-1 focus:ring-[#090040] sm:w-32"
+    />
+    <input
+      type="text"
+      name="description"
+      placeholder="Note (optional)"
+      className="w-full flex-1 rounded-md border border-gray-300 px-3 py-2 text-black outline-none focus:border-[#090040] focus:ring-1 focus:ring-[#090040]"
+    />
+    <button
+      type="submit"
+      className="rounded-md bg-[#090040] px-4 py-2 text-white transition hover:bg-[#20116b]"
+    >
+      Deposit to A/C
+    </button>
+  </form>
+)}
                     </li>
                   );
                 })}

@@ -177,41 +177,70 @@ export default function Home() {
     }
   };
 
+  const addDeposit = async (
+    groupId: string,
+    memberName: string,
+    amount: number,
+    description: string,
+  ) => {
+    try {
+      await axiosSecure.post(`/teamDB/${groupId}/deposits`, {
+        memberName,
+        amount,
+        description,
+      });
+
+      const response = await axiosSecure.get<Group[]>("/teamDB");
+      setGroups(response.data);
+
+      await Swal.fire({
+        title: "Deposit added",
+        text: `${memberName} deposited ৳${amount.toFixed(2)}.`,
+        icon: "success",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } catch (error) {
+      console.error("Failed to add deposit:", error);
+      await Swal.fire("Error", "Could not add the deposit.", "error");
+    }
+  };
+
   const handleFinishTour = async (groupId: string) => {
-  const group = currGroup(groupId);
+    const group = currGroup(groupId);
 
-  if (!group) return;
+    if (!group) return;
 
-  const result = await Swal.fire({
-    title: "Finish tour?",
-    text: "No more expenses or deposits can be added after this.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#15D8B3",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, finish it!",
-  });
-
-  if (!result.isConfirmed) return;
-
-  try {
-    await axiosSecure.patch(`/teamDB/${groupId}/finishTour`);
-
-    const response = await axiosSecure.get<Group[]>("/teamDB");
-    setGroups(response.data);
-
-    await Swal.fire({
-      title: "Tour finished",
-      text: `${group.name} has been locked.`,
-      icon: "success",
-      showConfirmButton: false,
-      timer: 1500
+    const result = await Swal.fire({
+      title: "Finish tour?",
+      text: "No more expenses or deposits can be added after this.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#15D8B3",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, finish it!",
     });
-  } catch (error) {
-    console.error("Failed to finish tour:", error);
-    await Swal.fire("Error", "Could not finish the tour.", "error");
-  }
-};
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axiosSecure.patch(`/teamDB/${groupId}/finishTour`);
+
+      const response = await axiosSecure.get<Group[]>("/teamDB");
+      setGroups(response.data);
+
+      await Swal.fire({
+        title: "Tour finished",
+        text: `${group.name} has been locked.`,
+        icon: "success",
+        showConfirmButton: false,
+        timer: 1500
+      });
+    } catch (error) {
+      console.error("Failed to finish tour:", error);
+      await Swal.fire("Error", "Could not finish the tour.", "error");
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -257,6 +286,7 @@ export default function Home() {
           onAddExpense={addExpense}
           handleSetGroup={handleSetGroup}
           handleFinishTour={handleFinishTour}
+          onAddDeposit={addDeposit}
         />
       </main>
 

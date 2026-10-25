@@ -136,6 +136,8 @@ export function recalculate(inputGroup: Group): Group {
                 const shareCents = toCents(share.amount);
                 draft.totalOwedCents += shareCents;
 
+                if (share.memberName === payerName) continue;
+
                 const deduction = Math.min(draft.balanceCents, shareCents);
                 if (deduction > 0) {
                     draft.balanceCents -= deduction;
