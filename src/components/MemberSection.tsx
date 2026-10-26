@@ -35,17 +35,25 @@ type Deposit = {
   createdAt: string;
 };
 
+type ExpensePaid = {
+  id?: string;
+  description: string;
+  amount: number;
+  time: string;
+};
+
 type SectionData = {
   transactions?: AccountTransaction[];
   shared?: SharedExpense[];
   debts?: Debt[];
   deposits?: Deposit[];
+  expenses_paid?: ExpensePaid[];
 };
 
 type MemberSectionProps = {
   groupId: string;
   memberName: string;
-  type: "transactions" | "shared" | "debts" | "deposits";
+  type: "transactions" | "shared" | "debts" | "deposits" | "expenses_paid";
   title: string;
 };
 
@@ -75,7 +83,7 @@ export default function MemberSection({
 
     try {
       const response = await axiosSecure.get(
-        `/teamDB/${groupId}/members/${encodeURIComponent(memberName)}/section?type=${type}`
+        `/teamDB/${groupId}/members/${encodeURIComponent(memberName)}/section?type=${type}`,
       );
       setData(response.data);
     } catch (err) {
@@ -87,12 +95,37 @@ export default function MemberSection({
   };
 
   const fmt = (n: number) =>
-    n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    n.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
   return (
     <section className="mt-8 border border-gray-200 rounded-lg bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-black">{title}</h2>
+        <div className="flex items-baseline gap-3">
+          <h2 className="text-xl font-bold text-black">{title}</h2>
+          {data && type === "shared" && (
+            <span className="text-sm text-gray-500">
+              Total: ৳
+              {fmt(data.shared?.reduce((sum, e) => sum + e.myShare, 0) || 0)}
+            </span>
+          )}
+          {data && type === "deposits" && (
+            <span className="text-sm text-gray-500">
+              Total: ৳
+              {fmt(data.deposits?.reduce((sum, d) => sum + d.amount, 0) || 0)}
+            </span>
+          )}
+          {data && type === "expenses_paid" && (
+            <span className="text-sm text-gray-500">
+              Total: ৳
+              {fmt(
+                data.expenses_paid?.reduce((sum, e) => sum + e.amount, 0) || 0,
+              )}
+            </span>
+          )}
+        </div>
         <button
           onClick={handleToggle}
           className="rounded-md bg-[#090040] px-4 py-2 text-sm text-white transition hover:bg-[#20116b]"
@@ -111,20 +144,50 @@ export default function MemberSection({
           {!isLoading && !error && data && type === "transactions" && (
             <ul className="space-y-2">
               {data.transactions?.length === 0 ? (
-                <p className="text-sm text-gray-500">No A/C transactions yet.</p>
+                <p className="text-sm text-gray-500">
+                  No A/C transactions yet.
+                </p>
               ) : (
                 data.transactions?.map((t) => (
-                  <li key={t.id} className="rounded-lg border bg-gray-50 p-3 text-sm">
+                  <li
+                    key={t.id}
+                    className="rounded-lg border bg-gray-50 p-3 text-sm"
+                  >
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-gray-800 capitalize">
                         {t.type.replace(/_/g, " ")}
                       </span>
-                      <span className="font-semibold text-gray-900">৳{fmt(t.amount)}</span>
+                      <span className="font-semibold text-gray-900">
+                        ৳{fmt(t.amount)}
+                      </span>
                     </div>
                     <div className="mt-1 flex flex-wrap justify-between gap-2 text-xs text-gray-500">
                       <span>{t.description}</span>
                       <span>A/C after: ৳{fmt(t.balanceAfter ?? 0)}</span>
                     </div>
+                  </li>
+                ))
+              )}
+            </ul>
+          )}
+
+          {!isLoading && !error && data && type === "expenses_paid" && (
+            <ul className="space-y-2">
+              {data.expenses_paid?.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  No expenses paid by this person.
+                </p>
+              ) : (
+                data.expenses_paid?.map((e) => (
+                  <li
+                    key={e.id}
+                    className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
+                  >
+                    <div className="flex items-center justify-between font-medium text-gray-900">
+                      <span>{e.description}</span>
+                      <span>৳{fmt(e.amount)}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-gray-500">{e.time}</div>
                   </li>
                 ))
               )}
@@ -137,17 +200,22 @@ export default function MemberSection({
                 <p className="text-sm text-gray-500">No shared expenses yet.</p>
               ) : (
                 data.shared?.map((e) => (
-                  <li key={e.id} className="rounded-lg border bg-gray-50 p-3 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-800">{e.description}</span>
-                      <span className="font-semibold text-gray-900">৳{fmt(e.myShare)}</span>
+                  <li
+                    key={e.id}
+                    className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
+                  >
+                    <div className="flex items-center justify-between font-medium text-gray-900">
+                      <span>{e.description}</span>
+                      <span>৳{fmt(e.myShare)}</span>
                     </div>
                     <div className="mt-1 flex flex-wrap justify-between gap-2 text-xs text-gray-500">
                       <span>Paid by {e.payerName}</span>
                       <span>{e.time}</span>
                     </div>
                     {e.note && (
-                      <div className="mt-1 text-xs italic text-gray-600">Note: {e.note}</div>
+                      <div className="mt-2 rounded bg-gray-50 p-2 text-xs italic text-gray-600">
+                        Note: {e.note}
+                      </div>
                     )}
                   </li>
                 ))
@@ -164,17 +232,25 @@ export default function MemberSection({
                   const remaining = d.originalAmount - d.settledAmount;
                   const isOwedToThem = d.toMember === memberName;
                   return (
-                    <li key={d.id} className="rounded-lg border bg-gray-50 p-3 text-sm">
+                    <li
+                      key={d.id}
+                      className="rounded-lg border bg-gray-50 p-3 text-sm"
+                    >
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-gray-800">
-                          {isOwedToThem ? `${d.fromMember} owes him` : `He owes ${d.toMember}`}
+                          {isOwedToThem
+                            ? `${d.fromMember} owes him`
+                            : `He owes ${d.toMember}`}
                         </span>
-                        <span className={`font-semibold ${remaining > 0 ? (isOwedToThem ? "text-green-600" : "text-red-600") : "text-gray-500 line-through"}`}>
+                        <span
+                          className={`font-semibold ${remaining > 0 ? (isOwedToThem ? "text-green-600" : "text-red-600") : "text-gray-500 line-through"}`}
+                        >
                           ৳{fmt(remaining)}
                         </span>
                       </div>
                       <div className="mt-1 text-xs text-gray-500">
-                        Original ৳{fmt(d.originalAmount)}, settled ৳{fmt(d.settledAmount)}
+                        Original ৳{fmt(d.originalAmount)}, settled ৳
+                        {fmt(d.settledAmount)}
                       </div>
                     </li>
                   );
@@ -189,10 +265,13 @@ export default function MemberSection({
                 <p className="text-sm text-gray-500">No deposits yet.</p>
               ) : (
                 data.deposits?.map((d) => (
-                  <li key={d.id} className="rounded-lg border bg-gray-50 p-3 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-800">{d.description}</span>
-                      <span className="font-semibold text-gray-900">৳{fmt(d.amount)}</span>
+                  <li
+                    key={d.id}
+                    className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
+                  >
+                    <div className="flex items-center justify-between font-medium text-gray-900">
+                      <span>{d.description}</span>
+                      <span>৳{fmt(d.amount)}</span>
                     </div>
                     <div className="mt-1 text-xs text-gray-500">
                       {new Date(d.createdAt).toLocaleString("en-GB", {
@@ -201,7 +280,6 @@ export default function MemberSection({
                         year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
-                        second: "2-digit",
                         hour12: true,
                       })}
                     </div>

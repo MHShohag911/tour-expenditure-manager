@@ -30,9 +30,9 @@ export default async function MemberPage({ params }: PageProps) {
   }
 
   const client = await clientPromise;
-  
+
   // Fetch only the summary data using aggregation to keep the payload small
-  const group = await client
+  const group = (await client
     .db(DATABASE_NAME)
     .collection<Group>(COLLECTION_NAME)
     .aggregate([
@@ -63,9 +63,8 @@ export default async function MemberPage({ params }: PageProps) {
           "members.accountTransactions": 0,
         },
       },
-      ])
-    .next() as (Group & { totalDepositsForMember?: number }) | null;
-    
+    ])
+    .next()) as (Group & { totalDepositsForMember?: number }) | null;
 
   if (!group) {
     return (
@@ -91,7 +90,7 @@ export default async function MemberPage({ params }: PageProps) {
   // Since we excluded outstandingDebts and accountTransactions, the Net
   // calculation falls back to the gross tour totals.
   const net = member.totalPaid - member.totalOwed;
-  
+
   // These totals were calculated by the aggregation pipeline above
   const totalDeposits = group.totalDepositsForMember || 0;
 
@@ -107,34 +106,74 @@ export default async function MemberPage({ params }: PageProps) {
       <section className="mt-6 grid grid-cols-2 gap-4 rounded-xl border bg-white p-5 md:grid-cols-3">
         <div>
           <p className="text-xs uppercase text-gray-500">Total Paid</p>
-          <p className="text-lg font-semibold text-gray-900">৳{fmt(member.totalPaid)}</p>
+          <p className="text-lg font-semibold text-gray-900">
+            ৳{fmt(member.totalPaid)}
+          </p>
         </div>
         <div>
           <p className="text-xs uppercase text-gray-500">Total Owed</p>
-          <p className="text-lg font-semibold text-gray-900">৳{fmt(member.totalOwed)}</p>
+          <p className="text-lg font-semibold text-gray-900">
+            ৳{fmt(member.totalOwed)}
+          </p>
         </div>
         <div>
           <p className="text-xs uppercase text-gray-500">Total Deposits</p>
-          <p className="text-lg font-semibold text-indigo-700">৳{fmt(totalDeposits)}</p>
+          <p className="text-lg font-semibold text-indigo-700">
+            ৳{fmt(totalDeposits)}
+          </p>
         </div>
         <div>
           <p className="text-xs uppercase text-gray-500">A/C Balance</p>
-          <p className="text-lg font-semibold text-blue-700">৳{fmt(member.accountBalance ?? 0)}</p>
+          <p className="text-lg font-semibold text-blue-700">
+            ৳{fmt(member.accountBalance ?? 0)}
+          </p>
         </div>
         <div>
           <p className="text-xs uppercase text-gray-500">Net Tour Balance</p>
-          <p className={`text-lg font-semibold ${Math.abs(net) < 0.005 ? "text-gray-600" : net > 0 ? "text-green-600" : "text-red-600"}`}>
-            {Math.abs(net) < 0.005 ? "Even" : net > 0 ? `Will Get ৳${fmt(net)}` : `Will Pay ৳${fmt(-net)}`}
+          <p
+            className={`text-lg font-semibold ${Math.abs(net) < 0.005 ? "text-gray-600" : net > 0 ? "text-green-600" : "text-red-600"}`}
+          >
+            {Math.abs(net) < 0.005
+              ? "Even"
+              : net > 0
+                ? `Will Get ৳${fmt(net)}`
+                : `Will Pay ৳${fmt(-net)}`}
           </p>
         </div>
       </section>
 
       {/* Lazy-loaded sections */}
       <div className="mt-4">
-        <MemberSection groupId={id} memberName={memberName} type="shared" title="Shared Expenses" />
-        <MemberSection groupId={id} memberName={memberName} type="deposits" title="Deposits" />
-        <MemberSection groupId={id} memberName={memberName} type="transactions" title="A/C Transactions" />
-        <MemberSection groupId={id} memberName={memberName} type="debts" title="Debts" />
+        <MemberSection
+          groupId={id}
+          memberName={memberName}
+          type="expenses_paid"
+          title="Expenses Paid"
+        />
+        <MemberSection
+          groupId={id}
+          memberName={memberName}
+          type="shared"
+          title="Shared Expenses"
+        />
+        <MemberSection
+          groupId={id}
+          memberName={memberName}
+          type="deposits"
+          title="Deposits"
+        />
+        <MemberSection
+          groupId={id}
+          memberName={memberName}
+          type="transactions"
+          title="A/C Transactions"
+        />
+        <MemberSection
+          groupId={id}
+          memberName={memberName}
+          type="debts"
+          title="Debts"
+        />
       </div>
     </div>
   );

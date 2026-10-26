@@ -21,7 +21,7 @@ export async function GET(request: Request, { params }: RouteContext) {
       return NextResponse.json({ message: "Invalid group ID." }, { status: 400 });
     }
 
-    if (!["transactions", "shared", "debts", "deposits"].includes(type || "")) {
+    if (!["transactions", "shared", "debts", "deposits", "expenses_paid"].includes(type || "")) {
       return NextResponse.json({ message: "Invalid section type." }, { status: 400 });
     }
 
@@ -78,6 +78,17 @@ export async function GET(request: Request, { params }: RouteContext) {
         (d) => d.memberName === member.name
       );
       return NextResponse.json({ deposits: myDeposits });
+    }
+
+    if (type === "expenses_paid") {
+      const expensesPaid = (group.expenses ?? []).filter((e) => e.payerName === member.name);
+      const data = expensesPaid.map((e) => ({
+        id: e.id,
+        description: e.description,
+        amount: e.amount,
+        time: e.time,
+      }));
+      return NextResponse.json({ expenses_paid: data });
     }
 
     return NextResponse.json({ message: "Unknown section." }, { status: 400 });
