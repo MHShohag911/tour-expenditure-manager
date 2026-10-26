@@ -114,7 +114,11 @@ export default function MemberSection({
           {data && type === "deposits" && (
             <span className="text-sm text-gray-500">
               Total: ৳
-              {fmt(data.deposits?.reduce((sum, d) => sum + d.amount, 0) || 0)}
+              {fmt(
+                data.deposits
+                  ?.filter((d) => d.amount > 0)
+                  .reduce((sum, d) => sum + d.amount, 0) || 0,
+              )}
             </span>
           )}
           {data && type === "expenses_paid" && (
@@ -259,12 +263,13 @@ export default function MemberSection({
             </ul>
           )}
 
-          {!isLoading && !error && data && type === "deposits" && (
+                    {!isLoading && !error && data && type === "deposits" && (
             <ul className="space-y-2">
-              {data.deposits?.length === 0 ? (
+              {/* Filter to only show positive deposits */}
+              {data.deposits?.filter((d) => d.amount > 0).length === 0 ? (
                 <p className="text-sm text-gray-500">No deposits yet.</p>
               ) : (
-                data.deposits?.map((d) => (
+                data.deposits?.filter((d) => d.amount > 0).map((d) => (
                   <li
                     key={d.id}
                     className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"

@@ -39,13 +39,18 @@ export default async function MemberPage({ params }: PageProps) {
       { $match: { _id: new ObjectId(id) } },
       {
         $addFields: {
-          totalDepositsForMember: {
+                    totalDepositsForMember: {
             $reduce: {
               input: { $ifNull: ["$deposits", []] },
               initialValue: 0,
               in: {
                 $cond: [
-                  { $eq: ["$$this.memberName", memberName] },
+                  {
+                    $and: [
+                      { $eq: ["$$this.memberName", memberName] },
+                      { $gt: ["$$this.amount", 0] }
+                    ]
+                  },
                   { $add: ["$$value", "$$this.amount"] },
                   "$$value",
                 ],
