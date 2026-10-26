@@ -1,7 +1,7 @@
 "use client";
 
 import type { Group } from "@/types/group";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Swal from "sweetalert2";
 import GroupForm from "@/components/GroupForm";
 import GroupList from "@/components/GroupList";
@@ -234,32 +234,6 @@ export default function Dashboard({ initialGroups }: { initialGroups: Group[] })
       await Swal.fire("Error", "Could not finish the tour.", "error");
     }
   };
-
- /*  useEffect(() => {
-    let cancelled = false;
-
-    const fetchGroups = async () => {
-      try {
-        const response = await axiosSecure.get<Group[]>("/teamDB");
-
-        if (!cancelled) {
-          setGroups(response.data);
-        }
-      } catch (error) {
-        console.error("Failed to load groups:", error);
-
-        if (!cancelled) {
-          Swal.fire("Error", "Could not load your groups.", "error");
-        }
-      }
-    };
-
-    void fetchGroups();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [axiosSecure]); */
 
   return (
     <div className="container mx-auto flex min-h-screen flex-col px-4">
