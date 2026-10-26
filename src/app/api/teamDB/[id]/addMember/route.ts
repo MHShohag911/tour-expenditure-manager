@@ -92,7 +92,6 @@ export async function PATCH(
             totalPaid: 0,
             totalOwed: 0,
             accountBalance: 0,
-            accountCreditBalance: 0,
             accountTransactions: [],
           },
         ];

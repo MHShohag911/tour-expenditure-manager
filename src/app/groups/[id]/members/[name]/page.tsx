@@ -122,10 +122,6 @@ export default async function MemberPage({ params }: PageProps) {
           <p className="text-lg font-semibold text-blue-700">৳{fmt(member.accountBalance ?? 0)}</p>
         </div>
         <div>
-          <p className="text-xs uppercase text-gray-500">Owed to him</p>
-          <p className="text-lg font-semibold text-amber-700">৳{fmt(member.accountCreditBalance ?? 0)}</p>
-        </div>
-        <div>
           <p className="text-xs uppercase text-gray-500">Net Tour Balance</p>
           <p className={`text-lg font-semibold ${Math.abs(net) < 0.005 ? "text-gray-600" : net > 0 ? "text-green-600" : "text-red-600"}`}>
             {Math.abs(net) < 0.005 ? "Even" : net > 0 ? `Will Get ৳${fmt(net)}` : `Will Pay ৳${fmt(-net)}`}

@@ -1,15 +1,16 @@
 export type Deposit = {
   id: string;
   memberName: string;
-  amount: number;           // currency, stored
+  amount: number;
   description: string;
-  createdAt: string;        // ISO
+  createdAt: string;
   sequence: number;
+  paidTo?: string;
 };
 
 export type AccountTransaction = {
   id: string;
-  type: "deposit" | "expense_deduction" | "expense_credit" | "debt_netting";
+  type: "deposit" | "expense_deduction" | "expense_credit" | "settlement" | "debt_netting";
   amount: number;
   description: string;
   createdAt: string;
@@ -32,23 +33,11 @@ export type OutstandingDebt = {
   sequence: number;
 };
 
-/* export type Settlement = {
-  id: string;
-  fromMember: string;
-  toMember: string;
-  amount: number;
-  expenseId: string;
-  depositId: string;
-  createdAt: string;
-  sequence: number;
-}; */
-
 export type Member = {
   name: string;
   totalPaid: number;
   totalOwed: number;
   accountBalance: number;         // available A/C only
-  accountCreditBalance: number;   // receivables only
   accountTransactions: AccountTransaction[];
 };
 

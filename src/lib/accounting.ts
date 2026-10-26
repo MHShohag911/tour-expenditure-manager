@@ -127,25 +127,53 @@ function recalculate(inputGroup: Group): Group {
                     _settledCents: 0,
                 });
             }
-        } else {
+                } else {
             const deposit = entry.item;
             const draft = findMemberDraft(memberDrafts, deposit.memberName);
             findMemberInput(inputGroup, deposit.memberName);
 
             const depositCents = toCents(deposit.amount);
-            draft.balanceCents += depositCents;
+            
+            // If this is a settlement payment
+            if (deposit.paidTo) {
+                const payAmount = Math.abs(depositCents);
+                
+                // 1. Payer's A/C drops
+                draft.balanceCents += depositCents; // depositCents is negative
+                
+                // 2. Payer's totalPaid goes UP
+                draft.totalPaidCents += payAmount;
+                
+                // 3. Receiver's totalPaid goes DOWN
+                const receiverDraft = findMemberDraft(memberDrafts, deposit.paidTo);
+                receiverDraft.totalPaidCents -= payAmount;
 
-            ensureTransaction(draft, {
-                id: `${deposit.id}:deposit`,
-                type: "deposit",
-                amount: fromCents(depositCents),
-                description: deposit.description,
-                createdAt: deposit.createdAt,
-                sequence: deposit.sequence,
-                relatedDepositId: deposit.id,
-                balanceAfter: fromCents(draft.balanceCents),
-                creditAfter: 0,
-            });
+                ensureTransaction(draft, {
+                    id: `${deposit.id}:pay`,
+                    type: "settlement",
+                    amount: fromCents(payAmount),
+                    description: `Paid ${deposit.paidTo} from A/C`,
+                    createdAt: deposit.createdAt,
+                    sequence: deposit.sequence,
+                    relatedDepositId: deposit.id,
+                    balanceAfter: fromCents(draft.balanceCents),
+                    creditAfter: 0,
+                });
+            } else {
+                // Normal deposit
+                draft.balanceCents += depositCents;
+                ensureTransaction(draft, {
+                    id: `${deposit.id}:deposit`,
+                    type: "deposit",
+                    amount: fromCents(depositCents),
+                    description: deposit.description,
+                    createdAt: deposit.createdAt,
+                    sequence: deposit.sequence,
+                    relatedDepositId: deposit.id,
+                    balanceAfter: fromCents(draft.balanceCents),
+                    creditAfter: 0,
+                });
+            }
         }
     }
 
@@ -172,7 +200,6 @@ function recalculate(inputGroup: Group): Group {
             totalPaid: fromCents(draft.totalPaidCents),
             totalOwed: fromCents(draft.totalOwedCents),
             accountBalance: fromCents(draft.balanceCents),
-            accountCreditBalance: fromCents(creditCents.get(member.name) ?? 0),
             accountTransactions: draft.transactions,
         };
     });
@@ -209,7 +236,6 @@ export async function mutateGroup(
         members: (raw.members ?? []).map((member) => ({
             ...member,
             accountBalance: member.accountBalance ?? 0,
-            accountCreditBalance: member.accountCreditBalance ?? 0,
             accountTransactions: member.accountTransactions ?? [],
         })),
         expenses: raw.expenses ?? [],
