@@ -9,7 +9,7 @@ export type Deposit = {
 
 export type AccountTransaction = {
   id: string;
-  type: "deposit" | "expense_deduction" | "expense_credit" | "settlement" | "debt_netting";
+  type: "deposit" | "expense_deduction" | "expense_credit" | "debt_netting";
   amount: number;
   description: string;
   createdAt: string;
@@ -32,7 +32,7 @@ export type OutstandingDebt = {
   sequence: number;
 };
 
-export type Settlement = {
+/* export type Settlement = {
   id: string;
   fromMember: string;
   toMember: string;
@@ -41,7 +41,7 @@ export type Settlement = {
   depositId: string;
   createdAt: string;
   sequence: number;
-};
+}; */
 
 export type Member = {
   name: string;
@@ -72,6 +72,6 @@ export type Group = {
   expenses: Expense[];
   deposits?: Deposit[];
   outstandingDebts?: OutstandingDebt[];
-  settlements?: Settlement[];
+  // settlements?: Settlement[];
   nextSequence?: number;
 };
