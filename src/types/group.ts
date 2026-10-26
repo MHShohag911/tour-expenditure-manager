@@ -63,12 +63,6 @@ export type Expense = {
   shares?: { memberName: string; amount: number; note?: string }[];
 };
 
-export type ExtraCharge = {
-  extraAmount: number;
-  paidBy: string;
-  owedBy: string;
-};
-
 export type Group = {
   _id: string;
   name: string;
@@ -80,5 +74,4 @@ export type Group = {
   outstandingDebts?: OutstandingDebt[];
   settlements?: Settlement[];
   nextSequence?: number;
-  extraCharges?: ExtraCharge[];
 };

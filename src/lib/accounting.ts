@@ -82,7 +82,7 @@ const findMemberInput = (group: Group, name: string): Member => {
     return member;
 };
 
-export function recalculate(inputGroup: Group): Group {
+function recalculate(inputGroup: Group): Group {
     const members = inputGroup.members ?? [];
     const expenses = inputGroup.expenses ?? [];
     const deposits = inputGroup.deposits ?? [];

@@ -41,7 +41,6 @@ export default function Dashboard({ initialGroups }: { initialGroups: Group[] })
         name,
         members: [],
         expenses: [],
-        extraCharges: [],
         isDisabled: false,
       });
 
