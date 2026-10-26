@@ -75,7 +75,7 @@ const GroupList = ({
     }
   };
 
-   const activeGroups = groups.filter((g) => !g.isFinished);
+  const activeGroups = groups.filter((g) => !g.isFinished);
   const finishedGroups = groups.filter((g) => g.isFinished);
 
   return (
@@ -99,20 +99,20 @@ const GroupList = ({
       {finishedGroups.length > 0 && (
         <div className="mt-12 border-t-2 border-dashed border-gray-300 pt-8">
           <h2 className="mb-6 text-2xl font-bold text-gray-700">Finished Tours</h2>
-          
+
           {finishedGroups.map((group) => {
             // Calculate total spend and dates from expenses
             const totalSpend = (group.expenses ?? []).reduce((sum, e) => sum + e.amount, 0);
-            
+
             let dateRange = "No dates";
             if (group.expenses && group.expenses.length > 0) {
               const dates = group.expenses.map((e) => new Date(e.createdAt || e.time));
               const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
               const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
-              
+
               const fmtDate = (d: Date) => d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
               const days = Math.max(1, Math.ceil((maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24)));
-              
+
               dateRange = `${fmtDate(minDate)} - ${fmtDate(maxDate)} (${days} days)`;
             }
 
@@ -120,7 +120,7 @@ const GroupList = ({
               <div key={group._id} className="my-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 className="text-2xl font-bold text-black">{group.name}</h2>
                 <p className="mt-1 text-sm text-gray-500">{dateRange}</p>
-                
+
                 <div className="mt-4 flex flex-wrap gap-6 text-sm">
                   <div>
                     <p className="text-gray-500">Members</p>
@@ -132,13 +132,20 @@ const GroupList = ({
                   </div>
                 </div>
 
-                <div className="mt-6">
+                                <div className="mt-6 flex justify-end gap-2">
                   <Link
                     href={`/groups/${group._id}`}
                     className="inline-block rounded-md bg-[#090040] px-5 py-2 text-white transition hover:bg-[#20116b]"
                   >
                     View Details
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteGroup(group._id)}
+                    className="inline-block rounded-md border border-red-200 bg-white px-5 py-2 text-red-600 transition hover:bg-red-50"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             );
