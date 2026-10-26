@@ -101,7 +101,7 @@ export default async function MemberPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-      <Link href="/" className="text-sm text-blue-600 underline">
+      <Link href={`/groups/${group._id}`} className="text-sm text-blue-600 underline">
         ← Back
       </Link>
 
