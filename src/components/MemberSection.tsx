@@ -9,6 +9,7 @@ type AccountTransaction = {
   amount: number;
   description: string;
   balanceAfter?: number;
+  createdAt?: string; // Add this
 };
 
 type SharedExpense = {
@@ -26,6 +27,7 @@ type Debt = {
   toMember: string;
   originalAmount: number;
   settledAmount: number;
+   createdAt?: string;
 };
 
 type Deposit = {
@@ -152,23 +154,31 @@ export default function MemberSection({
                   No A/C transactions yet.
                 </p>
               ) : (
-                data.transactions?.map((t) => (
+                                data.transactions?.map((t) => (
                   <li
                     key={t.id}
-                    className="rounded-lg border bg-gray-50 p-3 text-sm"
+                    className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-800 capitalize">
-                        {t.type.replace(/_/g, " ")}
-                      </span>
-                      <span className="font-semibold text-gray-900">
-                        ৳{fmt(t.amount)}
-                      </span>
+                    <div className="flex items-center justify-between font-medium text-gray-900">
+                      <span className="capitalize">{t.type.replace(/_/g, " ")}</span>
+                      <span>৳{fmt(t.amount)}</span>
                     </div>
                     <div className="mt-1 flex flex-wrap justify-between gap-2 text-xs text-gray-500">
                       <span>{t.description}</span>
                       <span>A/C after: ৳{fmt(t.balanceAfter ?? 0)}</span>
                     </div>
+                    {t.createdAt && (
+                      <div className="mt-1 text-xs text-gray-400">
+                        {new Date(t.createdAt).toLocaleString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </div>
+                    )}
                   </li>
                 ))
               )}
@@ -236,25 +246,39 @@ export default function MemberSection({
                   const remaining = d.originalAmount - d.settledAmount;
                   const isOwedToThem = d.toMember === memberName;
                   return (
-                    <li
+                                        <li
                       key={d.id}
-                      className="rounded-lg border bg-gray-50 p-3 text-sm"
+                      className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-gray-800">
+                      <div className="flex items-center justify-between font-medium text-gray-900">
+                        <span>
                           {isOwedToThem
                             ? `${d.fromMember} owes him`
                             : `He owes ${d.toMember}`}
                         </span>
                         <span
-                          className={`font-semibold ${remaining > 0 ? (isOwedToThem ? "text-green-600" : "text-red-600") : "text-gray-500 line-through"}`}
+                          className={`font-semibold ${remaining > 0 ? (isOwedToThem ? "text-[#1DD100]" : "text-red-600") : "text-gray-400 line-through"}`}
                         >
                           ৳{fmt(remaining)}
                         </span>
                       </div>
-                      <div className="mt-1 text-xs text-gray-500">
-                        Original ৳{fmt(d.originalAmount)}, settled ৳
-                        {fmt(d.settledAmount)}
+                      <div className="mt-1 flex flex-wrap justify-between gap-2 text-xs text-gray-500">
+                        <span>
+                          Original ৳{fmt(d.originalAmount)}, settled ৳
+                          {fmt(d.settledAmount)}
+                        </span>
+                        {d.createdAt && (
+                          <span>
+                            {new Date(d.createdAt).toLocaleString("en-GB", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}
+                          </span>
+                        )}
                       </div>
                     </li>
                   );
