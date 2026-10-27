@@ -100,100 +100,108 @@ const GroupList = ({
 
       {/* Finished Groups */}
       {finishedGroups.length > 0 && (
-        <div className="mt-12 border-t-2 border-dashed border-gray-300 pt-8">
+        <div className="mt-12 border-t-2 border-dashed border-[#1DD100] pt-8">
           <h2 className="mb-6 text-2xl font-bold text-gray-700">
             Finished Tours
           </h2>
 
-          {[...finishedGroups].reverse().map((group) => {
-            // Calculate total spend and dates from expenses
-            const totalSpend = (group.expenses ?? []).reduce(
-              (sum, e) => sum + e.amount,
-              0,
-            );
-
-            let dateRange = "No dates";
-            if (group.expenses && group.expenses.length > 0) {
-              const dates = group.expenses.map(
-                (e) => new Date(e.createdAt || e.time),
-              );
-              const minDate = new Date(
-                Math.min(...dates.map((d) => d.getTime())),
-              );
-              const maxDate = new Date(
-                Math.max(...dates.map((d) => d.getTime())),
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[...finishedGroups].reverse().map((group) => {
+              // Calculate total spend and dates from expenses
+              const totalSpend = (group.expenses ?? []).reduce(
+                (sum, e) => sum + e.amount,
+                0,
               );
 
-              const fmtDate = (d: Date) =>
-                d.toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                });
-              const days = Math.max(
-                1,
-                Math.ceil(
-                  (maxDate.getTime() - minDate.getTime()) /
-                    (1000 * 60 * 60 * 24),
-                ),
-              );
+              let dateRange = "No dates";
+              if (group.expenses && group.expenses.length > 0) {
+                const dates = group.expenses.map(
+                  (e) => new Date(e.createdAt || e.time),
+                );
+                const minDate = new Date(
+                  Math.min(...dates.map((d) => d.getTime())),
+                );
+                const maxDate = new Date(
+                  Math.max(...dates.map((d) => d.getTime())),
+                );
 
-              dateRange = `${fmtDate(minDate)} - ${fmtDate(maxDate)} (${days} days)`;
-            }
+                const fmtDate = (d: Date) =>
+                  d.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  });
+                const days = Math.max(
+                  1,
+                  Math.ceil(
+                    (maxDate.getTime() - minDate.getTime()) /
+                      (1000 * 60 * 60 * 24),
+                  ),
+                );
 
-            return (
-              <div
-                key={group._id}
-                className="my-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
-              >
-                <h2 className="text-2xl font-bold text-black">{group.name}</h2>
-                <p className="mt-1 text-sm text-gray-500">{dateRange}</p>
+                dateRange = `${fmtDate(minDate)} - ${fmtDate(maxDate)} (${days} days)`;
+              }
 
-                <div className="mt-4 flex flex-wrap gap-6 text-sm">
-                  <div>
-                    <p className="text-gray-500">Members</p>
-                    <p className="font-semibold">{group.members.length}</p>
+              return (
+                <div
+                  key={group._id}
+                  className="my-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                >
+                  <div className="">
+                    <h2 className="text-2xl font-bold text-gray-700">
+                      {group.name}
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-500">{dateRange}</p>
+
+                    <div className="mt-4 flex flex-wrap gap-6 text-sm">
+                      <div>
+                        <p className="text-gray-500">Members</p>
+                        <p className="font-semibold text-center">{group.members.length}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Total Spend</p>
+                        <p className="font-semibold text-center">
+                          ৳{totalSpend.toFixed(2)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Avg. Share</p>
+                        <p className="font-semibold text-center">
+                          ৳
+                          {(group.members.length > 0
+                            ? totalSpend / group.members.length
+                            : 0
+                          ).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-500">Total Spend</p>
-                    <p className="font-semibold">৳{totalSpend.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Avg. Share</p>
-                    <p className="font-semibold">
-                      ৳
-                      {(group.members.length > 0
-                        ? totalSpend / group.members.length
-                        : 0
-                      ).toFixed(2)}
-                    </p>
+
+                  <div className="mt-6 md:text-right">
+                    <a
+                      href={`/groups/${group._id}/summary`}
+                      className="inline-block rounded-md border border--[#1DD100] text-[#1DD100] px-5 py-2 text-sm font-medium h-full transition hover:bg-[#1DD100] hover:text-white"
+                    >
+                      View Summary
+                    </a>
+                    <Link
+                      href={`/groups/${group._id}`}
+                      className="inline-block rounded-md bg-[#1DD100] px-5 py-2 text-sm font-semibold text-white h-full transition hover:bg-[#19B300] hover:border-[#19B300]  ml-2"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteGroup(group._id)}
+                      className="inline-block rounded-md border border-red-200 bg-white px-5 py-2 text-sm font-medium text-red-600 h-full transition hover:bg-red-50 my-2  ml-2"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
-
-                <div className="mt-6 md:text-right space-x-2 ">
-                  <a
-                    href={`/groups/${group._id}/summary`}
-                    className="inline-block rounded-md border border--[#1DD100] text-[#1DD100] px-5 py-2 text-sm font-medium h-full transition hover:bg-[#1DD100] hover:text-white"
-                  >
-                    View Summary
-                  </a>
-                  <Link
-                    href={`/groups/${group._id}`}
-                    className="inline-block rounded-md bg-[#1DD100] px-5 py-2 text-sm font-semibold text-white h-full transition hover:bg-[#19B300] hover:border-[#19B300]"
-                  >
-                    View Details
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteGroup(group._id)}
-                    className="inline-block rounded-md border border-red-200 bg-white px-5 py-2 text-sm font-medium text-red-600 h-full transition hover:bg-red-50 my-2"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
