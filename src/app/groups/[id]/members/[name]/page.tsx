@@ -103,7 +103,7 @@ export default async function MemberPage({ params }: PageProps) {
     <div className="container mx-auto max-w-4xl px-4 py-8">
       <Link
         href={`/groups/${group._id}`}
-        className="text-sm text-[#1DD100] font-bold"
+        className="text-sm text-[#1DD100] font-bold hover:text-gray-900"
       >
         ← Back
       </Link>
@@ -144,7 +144,7 @@ export default async function MemberPage({ params }: PageProps) {
               <span className="text-green-600 font-bold">Settled</span>
             ) : net > 0 ? (
               <>
-                <span className="font-normal ">Receivable</span>{" "}
+                <span className="font-bold ">Receivable</span>{" "}
                 <span className="text-[#1DD100]">৳{fmt(net)}</span>
               </>
             ) : (

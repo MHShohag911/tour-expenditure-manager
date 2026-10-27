@@ -45,7 +45,7 @@ export default function GroupForm({ onAddGroup }: GroupFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-[#1DD100] px-5 py-2 text-white disabled:opacity-50"
+        className="rounded-lg bg-[#1DD100] hover:bg-[#19B300] hover:border-[#19B300] px-5 py-2 text-white disabled:opacity-50"
       >
         {loading ? "Creating..." : "Create Group"}
       </button>

@@ -32,7 +32,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
     return (
       <div className="container mx-auto p-6">
         <p className="text-red-600">Group not found.</p>
-        <Link href="/" className="mt-4 inline-block text-blue-600 underline">
+        <Link href="/" className="mt-4 inline-block text-[#1DD100] hover:text-gray-900">
           Back to home
         </Link>
       </div>
@@ -47,7 +47,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
   return (
     <div className="container mx-auto flex min-h-screen flex-col px-4">
       <main className="flex-1 py-8">
-        <Link href="/" className="mb-6 font-bold inline-block text-sm text-[#1DD100]">
+        <Link href="/" className="mb-6 font-bold inline-block text-sm text-[#1DD100] hover:text-gray-900">
           ← Back to groups
         </Link>
         

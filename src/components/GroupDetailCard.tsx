@@ -239,13 +239,13 @@ export default function GroupDetailCard({
                             ? "Receivable"
                             : "Payable"}
                       </p>
-                      <p className="mt-1 text-base font-semibold text-gray-900">
+                      <p className="mt-1 text-base font-bold text-gray-900">
                         {isSettled ? (
-                          <span className="text-green-700">Settled</span>
+                          <span className="text-green-700 font-bold">Settled</span>
                         ) : (
                           <span
                             className={
-                              isCreditor ? "text-green-600" : "text-red-600"
+                              isCreditor ? "text-green-600 font-bold" : "text-red-600"
                             }
                           >
                             ৳{fmt(Math.abs(net))}

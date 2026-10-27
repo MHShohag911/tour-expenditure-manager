@@ -88,9 +88,9 @@ export default async function SummaryPage({ params }: PageProps) {
       </div>
 
       {/* Main Report Card */}
-      <div className="relative rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+      <div className="md:relative rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
         {/* Logo in the top right corner */}
-        <div className="absolute right-8 top-8">
+        <div className="mb-4 flex justify-center md:absolute md:right-8 md:top-8">
           <Image
             src="https://i.ibb.co.com/HLJN8qFp/logo.png" // Or use "/logo.png" if it's in the public folder
             alt="TEM Logo"
@@ -117,20 +117,29 @@ export default async function SummaryPage({ params }: PageProps) {
         {/* Totals */}
         <div className="mt-8 gap-8 text-sm">
           <div className="flex">
-            <p className="text-gray-600 font-bold">Total Members: <span className="text-black">{group.members.length}</span></p>
+            <p className="text-gray-600 font-bold">
+              Total Members:{" "}
+              <span className="text-black">{group.members.length}</span>
+            </p>
             <p className="font-bold"></p>
           </div>
           <div>
-            <p className="text-gray-600 font-bold">Total Expenses: <span className="text-black">{expenses.length}</span></p>
+            <p className="text-gray-600 font-bold">
+              Total Expenses:{" "}
+              <span className="text-black">{expenses.length}</span>
+            </p>
           </div>
           <div>
-            <p className="text-gray-600 font-bold">Total Spend: <span className="text-black">BDT {fmt(totalSpend)}</span></p>
+            <p className="text-gray-600 font-bold">
+              Total Spend:{" "}
+              <span className="text-black">BDT {fmt(totalSpend)}</span>
+            </p>
           </div>
         </div>
 
         {/* Member Summary */}
         <h2 className="mt-10 text-xl font-bold">Member Summary</h2>
-        <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-6 ">
           {group.members.map((member) => {
             const net = member.totalPaid - member.totalOwed;
             const isSettled = Math.abs(net) < 0.005;
@@ -142,27 +151,32 @@ export default async function SummaryPage({ params }: PageProps) {
 
                 <div className="mt-2 space-y-1 text-xs">
                   <p>
-                    <span className="text-black">Paid: BDT </span>
+                    <span className="text-gray-900 font-bold">Paid: </span>
                     <span className="font-bold text-[#1DD100]">
                       {fmt(member.totalPaid)}
                     </span>
                   </p>
                   <p>
-                    <span className="text-black">Share: BDT </span>
+                    <span className="text-gray-900 font-bold">Share: </span>
                     <span className="font-bold text-red-600">
                       {fmt(member.totalOwed)}
                     </span>
                   </p>
                 </div>
 
-                <p
-                  className={`mt-2 text-xs font-bold ${isSettled ? "text-green-700" : isCreditor ? "text-green-700" : "text-red-600"}`}
-                >
-                  {isSettled
-                    ? "Settled"
-                    : isCreditor
-                      ? `Gets back ${fmt(net)}`
-                      : `Owes ${fmt(-net)}`}
+                <p className="mt-2 text-xs font-bold text-gray-900">
+                  {isSettled ? (
+                    <span className="text-gray-600">Settled</span>
+                  ) : isCreditor ? (
+                    <>
+                      Gets Back{" "}
+                      <span className="text-[#1DD100]">{fmt(net)}</span>
+                    </>
+                  ) : (
+                    <>
+                      Pay <span className="text-red-600">{fmt(-net)}</span>
+                    </>
+                  )}
                 </p>
               </div>
             );

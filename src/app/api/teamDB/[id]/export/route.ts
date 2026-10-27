@@ -59,7 +59,6 @@ export async function GET(
 
         // Colors
         const brandGreen = rgb(0.11, 0.82, 0); // #1DD100
-        const green700 = rgb(0.02, 0.47, 0.34); // #047857
         const red600 = rgb(0.86, 0.15, 0.15);   // #dc2626
         const gray500 = rgb(0.42, 0.45, 0.50);  // #6b7280
 
@@ -137,7 +136,7 @@ export async function GET(
 
         let col = 0;
         const startX = 60;
-        const colWidth = 170;
+        const colWidth = 130;
 
         for (const member of group.members) {
             if (y < 100) {
@@ -147,36 +146,50 @@ export async function GET(
 
             const x = startX + (col * colWidth);
 
-                  // 1. Draw Member Name (Bold)
-      page.drawText(member.name, { x, y, size: 12, font: boldFont, color: rgb(0, 0, 0) });
-      
-      page.drawText("Paid: BDT ", { x, y: y - 18, size: 9, font, color: rgb(0, 0, 0) });
-      page.drawText(`${member.totalPaid.toFixed(2)}`, { x: x + 45, y: y - 18, size: 9, font: boldFont, color: brandGreen });
+            // 1. Draw Member Name (Bold)
+            page.drawText(member.name, { x, y, size: 12, font: boldFont, color: rgb(0, 0, 0) });
 
-      page.drawText("Share: BDT ", { x, y: y - 34, size: 9, font, color: rgb(0, 0, 0) });
-      page.drawText(`${member.totalOwed.toFixed(2)}`, { x: x + 50, y: y - 34, size: 9, font: boldFont, color: red600 });
+            page.drawText("Paid: ", { x, y: y - 18, size: 9, font, color: rgb(0, 0, 0) });
+            const paidTextWidth = font.widthOfTextAtSize("Paid: ", 9);
+            page.drawText(`${member.totalPaid.toFixed(2)}`, { x: x + paidTextWidth + 5, y: y - 18, size: 9, font: boldFont, color: brandGreen });
 
+            page.drawText("Share: ", { x, y: y - 34, size: 9, font, color: rgb(0, 0, 0) });
+            const shareTextWidth = font.widthOfTextAtSize("Share: ", 9);
+            page.drawText(`${member.totalOwed.toFixed(2)}`, { x: x + shareTextWidth + 5, y: y - 34, size: 9, font: boldFont, color: red600 });
+
+            // 4. Draw Status Text (Gray) and Amount (Green/Red)
             const net = member.totalPaid - member.totalOwed;
             const isSettled = Math.abs(net) < 0.005;
             const isCreditor = net > 0;
-            let statusText = "Settled";
-            let statusColor = green700;
+
+            let statusLabel = "Settled ";
+            let statusAmount = "";
+            let amountColor = gray500;
 
             if (!isSettled) {
                 if (isCreditor) {
-                    statusText = `Gets back ${Math.abs(net).toFixed(2)}`;
-                    statusColor = green700;
+                    statusLabel = "Gets Back ";
+                    statusAmount = Math.abs(net).toFixed(2);
+                    amountColor = brandGreen;
                 } else {
-                    statusText = `Owes ${Math.abs(net).toFixed(2)}`;
-                    statusColor = red600;
+                    statusLabel = "Pay ";
+                    statusAmount = Math.abs(net).toFixed(2);
+                    amountColor = red600;
                 }
             }
 
-            page.drawText(statusText, { x, y: y - 52, size: 9, font: boldFont, color: statusColor });
+            // Draw "Gets Back " or "Pay " in gray
+            page.drawText(statusLabel, { x, y: y - 52, size: 9, font, color: rgb(0, 0, 0) });
+
+            // Draw the amount in the brand color or red
+            if (statusAmount) {
+                const statusWidth = font.widthOfTextAtSize(statusLabel, 9);
+                page.drawText(statusAmount, { x: x + statusWidth, y: y - 52, size: 9, font: boldFont, color: amountColor });
+            }
 
             col++;
 
-            if (col === 3) {
+            if (col === 4) {
                 col = 0;
                 y -= 75;
             }
