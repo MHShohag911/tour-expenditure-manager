@@ -55,15 +55,11 @@ export default async function SummaryPage({ params }: PageProps) {
       ),
     );
   }
-
   const now = new Date();
   const generatedDate = now.toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
+    timeZone: "Asia/Dhaka",
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: true,
   });
 
   const totalSpend = expenses.reduce((sum, e) => sum + e.amount, 0);
