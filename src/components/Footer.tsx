@@ -7,7 +7,7 @@ const currentYear = new Date().getFullYear();
 const socialLinks = [
   {
     name: "Facebook",
-    href: "#",
+    href: "https://facebook.com/iam.mh.shohag",
     icon: <FaFacebookF />,
   },
   {
@@ -17,12 +17,12 @@ const socialLinks = [
   },
   {
     name: "X",
-    href: "#",
+    href: "https://x.com/shohagmdhossain",
     icon: <FaXTwitter />,
   },
   {
-    name: "GitHub",
-    href: "#",
+    name: "Github",
+    href: "https://github.com/mhshohag911",
     icon: <FaGithub />,
   },
 ];
@@ -32,14 +32,14 @@ export default function Footer() {
     <footer className="w-full rounded-lg bg-[#111827]">
       <div className="mx-auto my-2 w-full px-8">
         <div className="flex w-full flex-col-reverse items-center justify-center py-4 md:flex-row md:justify-between">
-          <p className="text-center text-sm font-normal text-gray-300 md:mb-0">
+          <p className="text-center text-sm py-2 font-normal text-gray-300 md:mb-0">
             © {currentYear}{" "}
             <span>
               Designed &amp; Developed by{" "}
               <Link
-                className="text-[#1DD100] transition hover:underline"
-                href={"/"}
-              >
+                className="text-[#1DD100] transition font-bold hover:underline"
+                href={"https://heartfelt-alfajores-6c383e.netlify.app/"}
+              > <br className="md:hidden"/>
                 M H Shohag
               </Link>
             </span>
