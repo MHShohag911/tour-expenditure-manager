@@ -5,7 +5,7 @@ export const revalidate = 0;
 import Dashboard from "@/components/Dashboard";
 import type { Group } from "@/types/group";
 
-const DATABASE_NAME = "Tour-Expenditure-Management";
+const DATABASE_NAME = "Tour-Expenditure-Management-Test";
 const COLLECTION_NAME = "TeamDB";
 
 export default async function Page() {

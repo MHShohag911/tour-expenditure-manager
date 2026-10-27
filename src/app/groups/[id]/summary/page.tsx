@@ -4,7 +4,7 @@ import clientPromise from "@/lib/mongodb";
 import type { Group } from "@/types/group";
 import Image from "next/image";
 
-const DATABASE_NAME = "Tour-Expenditure-Management";
+const DATABASE_NAME = "Tour-Expenditure-Management-Test";
 const COLLECTION_NAME = "TeamDB";
 
 type PageProps = {

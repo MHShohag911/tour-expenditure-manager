@@ -6,7 +6,7 @@ import type { Group } from "@/types/group";
 import fs from "fs";
 import path from "path";
 
-const DATABASE_NAME = "Tour-Expenditure-Management";
+const DATABASE_NAME = "Tour-Expenditure-Management-Test";
 const COLLECTION_NAME = "TeamDB";
 
 export async function GET(
