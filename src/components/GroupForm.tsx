@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -11,9 +10,7 @@ export default function GroupForm({ onAddGroup }: GroupFormProps) {
   const [groupName, setGroupName] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>,
-  ) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const name = groupName.trim();
@@ -32,23 +29,28 @@ export default function GroupForm({ onAddGroup }: GroupFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-3 ">
-      <input
-        type="text"
-        value={groupName}
-        onChange={(event) => setGroupName(event.target.value)}
-        placeholder="Enter group name"
-        className="min-w-0 flex-1 rounded-lg border px-4 py-2"
-        required
-      />
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-lg bg-[#1DD100] hover:bg-[#19B300] hover:border-[#19B300] px-5 py-2 text-white disabled:opacity-50"
+    <div className="">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col md:flex-row gap-3 "
       >
-        {loading ? "Creating..." : "Create Group"}
-      </button>
-    </form>
+        <input
+          type="text"
+          value={groupName}
+          onChange={(event) => setGroupName(event.target.value)}
+          placeholder="Enter group name"
+          className="min-w-0 flex-1 rounded-lg border px-4 py-2"
+          required
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="rounded-lg bg-[#1DD100] hover:bg-[#19B300] hover:border-[#19B300] px-5 py-2 text-white disabled:opacity-50"
+        >
+          {loading ? "Creating..." : "Create Group"}
+        </button>
+      </form>
+    </div>
   );
 }

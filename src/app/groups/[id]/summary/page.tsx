@@ -58,8 +58,12 @@ export default async function SummaryPage({ params }: PageProps) {
   const now = new Date();
   const generatedDate = now.toLocaleString("en-GB", {
     timeZone: "Asia/Dhaka",
-    day: "2-digit", month: "2-digit", year: "numeric",
-    hour: "2-digit", minute: "2-digit", hour12: true,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
   });
 
   const totalSpend = expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -110,8 +114,9 @@ export default async function SummaryPage({ params }: PageProps) {
           </p>
         </div>
 
+        <hr className="border-t-2 border-dashed border-[#1DD100] my-3" />
         {/* Totals */}
-        <div className="mt-8 gap-8 text-sm">
+        <div className="mt-4 gap-8 text-sm">
           <div className="flex">
             <p className="text-gray-600 font-bold">
               Total Members:{" "}
@@ -133,8 +138,9 @@ export default async function SummaryPage({ params }: PageProps) {
           </div>
         </div>
 
+        <hr className="border-t-2 border-dashed border-[#1DD100] my-3" />
         {/* Member Summary */}
-        <h2 className="mt-10 text-xl font-bold">Member Summary</h2>
+        <h2 className="mt-5 text-xl font-bold">Member Summary</h2>
         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-6 ">
           {group.members.map((member) => {
             const net = member.totalPaid - member.totalOwed;
@@ -179,8 +185,10 @@ export default async function SummaryPage({ params }: PageProps) {
           })}
         </div>
 
+        <hr className="border-t-2 border-dashed border-[#1DD100] my-3" />
+
         {/* Expense List */}
-        <h2 className="mt-12 text-xl font-bold">Expense Details</h2>
+        <h2 className="mt-5 text-xl font-bold">Expense Details</h2>
         <div className="mt-4 space-y-3">
           {expenses.map((expense, index) => {
             const eDate = expense.createdAt
