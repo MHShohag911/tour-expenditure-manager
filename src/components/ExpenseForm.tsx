@@ -494,7 +494,7 @@ const ExpenseForm = ({ groups, groupId, onAddExpense }: ExpenseFormProps) => {
             !currentGroup?.isDisabled || Boolean(currentGroup?.isFinished)
           }
           onClick={handleAddExpense}
-          className={`${buttonClassName} mt-3`}
+          className='rounded-md px-3 py-2 font-medium transition disabled:cursor-not-allowed disabled:opacity-50 mt-3 bg-[#1DD100] text-white'
         >
           Add Expense
         </button>
@@ -504,3 +504,4 @@ const ExpenseForm = ({ groups, groupId, onAddExpense }: ExpenseFormProps) => {
 };
 
 export default ExpenseForm;
+

@@ -13,16 +13,16 @@ export function NavBar() {
           className="mr-4 ml-2  flex cursor-pointer items-center py-1.5 font-medium"
         >
           <Image
-            src="https://i.ibb.co/B1qwG90/logo.png"
+            src="https://i.ibb.co.com/HLJN8qFp/logo.png"
             alt="TEM logo"
             width={48}
             height={48}
-            className="rounded-full object-cover border border-white mr-2" 
+            className="rounded-full object-cover mr-2"
           />
 
           <span className="text-xl font-bold text-white tracking-wider">
-  TEM
-</span>
+            TEM
+          </span>
         </Link>
       </div>
     </nav>

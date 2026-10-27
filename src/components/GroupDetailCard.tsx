@@ -192,7 +192,7 @@ export default function GroupDetailCard({
                       </span>
                       <Link
                         href={`/groups/${group._id}/members/${encodeURIComponent(member.name)}`}
-                        className="text-lg font-semibold text-gray-600 hover:text-blue-700"
+                        className="text-lg font-semibold text-gray-700 hover:text-[#1DD100] underline "
                       >
                         {member.name}
                       </Link>
@@ -212,13 +212,13 @@ export default function GroupDetailCard({
                   <div className="grid grid-cols-2 md:grid-cols-4  gap-4 ">
                     <div className="mx-auto">
                       <p className="text-xs font-medium text-gray-500">Paid</p>
-                      <p className="mt-1 text-base font-bold text-green-600">
+                      <p className="mt-1 text-base font-bold text-gray-600">
                         ৳{fmt(member.totalPaid)}
                       </p>
                     </div>
                     <div className="mx-auto">
                       <p className="text-xs font-medium text-gray-500">Owes</p>
-                      <p className="mt-1 text-base font-bold text-red-600">
+                      <p className="mt-1 text-base font-bold text-gray-600">
                         ৳{fmt(member.totalOwed)}
                       </p>
                     </div>
@@ -241,11 +241,11 @@ export default function GroupDetailCard({
                       </p>
                       <p className="mt-1 text-base font-semibold text-gray-900">
                         {isSettled ? (
-                          <span className="text-[#1DD100]">Settled</span>
+                          <span className="text-green-700">Settled</span>
                         ) : (
                           <span
                             className={
-                              isCreditor ? "text-[#1DD100]" : "text-red-600"
+                              isCreditor ? "text-green-600" : "text-red-600"
                             }
                           >
                             ৳{fmt(Math.abs(net))}
@@ -325,6 +325,11 @@ export default function GroupDetailCard({
                               text: `Transfer ${previewText} from your A/C?`,
                               icon: "question",
                               showCancelButton: true,
+                              confirmButtonColor: "#1DD100",
+                              cancelButtonColor: "#ef4444",
+                              customClass: {
+                                confirmButton: "text-black font-semibold",
+                              },
                               confirmButtonText: "Yes, pay it!",
                             });
 
@@ -356,7 +361,7 @@ export default function GroupDetailCard({
                               );
                             }
                           }}
-                          className="rounded-md bg-green-600 px-3 py-1 text-sm text-white transition hover:bg-green-700"
+                          className="rounded-md border  bg-green-600 px-3 py-1 text-sm text-white transition hover:bg-green-700"
                         >
                           Settle Debts from A/C
                         </button>
@@ -423,7 +428,7 @@ export default function GroupDetailCard({
                             />
                             <button
                               type="submit"
-                              className="rounded-md bg-[#090040] px-4 py-2 text-white"
+                              className="rounded-md bg-[#1DD100] px-4 py-2 text-white"
                             >
                               Confirm
                             </button>

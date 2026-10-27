@@ -11,7 +11,11 @@ import useAxiosSecure from "@/hooks/useAxiosSecure";
 
 type MutateResponse = { message: string; group?: Group };
 
-export default function Dashboard({ initialGroups }: { initialGroups: Group[] }) {
+export default function Dashboard({
+  initialGroups,
+}: {
+  initialGroups: Group[];
+}) {
   const [groups, setGroups] = useState<Group[]>(initialGroups);
   const axiosSecure = useAxiosSecure();
 
@@ -208,8 +212,11 @@ export default function Dashboard({ initialGroups }: { initialGroups: Group[] })
       text: "No more expenses or deposits can be added after this.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#15D8B3",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#1DD100",
+      cancelButtonColor: "#ef4444",
+      customClass: {
+        confirmButton: "text-black font-semibold",
+      },
       confirmButtonText: "Yes, finish it!",
     });
 
@@ -239,9 +246,9 @@ export default function Dashboard({ initialGroups }: { initialGroups: Group[] })
       <NavBar />
 
       <main className="min-h-screen flex-1">
-       <p className="my-10 text-center text-3xl font-bold text-[#111827]">
-  Tour Expenditure Manager
-</p>
+        <p className="my-10 text-center text-3xl font-bold text-[#111827]">
+          Tour Expenditure Manager
+        </p>
 
         <GroupForm onAddGroup={addGroup} />
 
