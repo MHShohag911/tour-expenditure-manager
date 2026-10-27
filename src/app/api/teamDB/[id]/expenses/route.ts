@@ -4,7 +4,7 @@ import clientPromise from "@/lib/mongodb";
 import { mutateGroup, toCents, fromCents } from "@/lib/accounting";
 import type { Expense, Group } from "@/types/group";
 
-const DATABASE_NAME = "Tour-Expenditure-Management-Test";
+const DATABASE_NAME = "Tour-Expenditure-Management";
 const COLLECTION_NAME = "TeamDB";
 
 type Share = {
