@@ -171,17 +171,23 @@ const GroupList = ({
                 </div>
 
                 <div className="mt-6 text-right">
-                  <div className="">
+                                    <div className="flex items-center gap-2">
+                    <a
+  href={`/groups/${group._id}/summary`}
+  className="inline-block rounded-md border-2 border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 h-full transition hover:bg-gray-50"
+>
+  View Summary
+</a>
                     <Link
                       href={`/groups/${group._id}`}
-                      className="inline-block rounded-md bg-[#1DD100] px-5 py-2 border-2 border-[#1DD100] text-sm text-white h-full transition hover:bg-[#19B300] hover:border-[#19B300] mr-2"
+                      className="inline-block rounded-md bg-[#1DD100] px-5 py-2 border-2 border-[#1DD100] text-sm font-semibold text-black h-full transition hover:bg-[#19B300] hover:border-[#19B300]"
                     >
                       View Details
                     </Link>
                     <button
                       type="button"
                       onClick={() => handleDeleteGroup(group._id)}
-                      className="inline-block rounded-md border border-red-200 bg-white px-5 py-2 text-red-600 transition hover:bg-red-50"
+                      className="inline-block rounded-md border border-red-200 bg-white px-5 py-2 text-sm font-medium text-red-600 h-full transition hover:bg-red-50"
                     >
                       Delete
                     </button>
