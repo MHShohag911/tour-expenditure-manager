@@ -165,7 +165,7 @@ export default function GroupDetailCard({
           </div>
         )}
 
-        <div>
+        <div className="mt-5">
           <h3 className="font-bold text-black">Members:</h3>
           <ul className="space-y-3 mt-2">
             {group.members.map((member, index) => {
@@ -210,28 +210,28 @@ export default function GroupDetailCard({
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4  gap-4 ">
-                    <div className="mx-auto">
+                    <div className="md:mx-auto">
                       <p className="text-xs font-medium text-gray-500">Paid</p>
                       <p className="mt-1 text-base font-bold text-gray-600">
                         ৳{fmt(member.totalPaid)}
                       </p>
                     </div>
-                    <div className="mx-auto">
+                    <div className="md:mx-auto">
                       <p className="text-xs font-medium text-gray-500">Owes</p>
                       <p className="mt-1 text-base font-bold text-gray-600">
                         ৳{fmt(member.totalOwed)}
                       </p>
                     </div>
-                    <div className="mx-auto">
+                    <div className="md:mx-auto">
                       <p className="text-xs font-medium  text-gray-500">
                         A/C Balance
                       </p>
-                      <p className="mt-1 text-base font-bold text-gray-900">
+                      <p className="mt-1 text-base font-bold text-gray-600">
                         ৳{fmt(member.accountBalance ?? 0)}
                       </p>
                     </div>
 
-                    <div className="mx-auto">
+                    <div className="md:mx-auto">
                       <p className="text-xs font-medium text-gray-500">
                         {isSettled
                           ? "Status"

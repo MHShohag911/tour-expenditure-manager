@@ -10,7 +10,7 @@ export function NavBar() {
         <Link
           href="/"
           aria-label="Tour Expenditure Manager home"
-          className="mr-4 ml-2  flex cursor-pointer items-center py-1.5 font-medium"
+          className="mr-4 ml-2 flex cursor-pointer items-center py-1.5 font-medium"
         >
           <Image
             src="https://i.ibb.co.com/HLJN8qFp/logo.png"
