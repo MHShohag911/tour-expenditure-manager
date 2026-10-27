@@ -20,7 +20,7 @@ export function NavBar() {
             className="rounded-full object-cover mr-2"
           />
 
-          <span className="text-xl font-bold text-white tracking-wider">
+          <span className="text-xl font-bold text-[#1DD100] tracking-wider">
             TEM
           </span>
         </Link>

@@ -27,7 +27,7 @@ type Debt = {
   toMember: string;
   originalAmount: number;
   settledAmount: number;
-   createdAt?: string;
+  createdAt?: string;
 };
 
 type Deposit = {
@@ -154,13 +154,15 @@ export default function MemberSection({
                   No A/C transactions yet.
                 </p>
               ) : (
-                                data.transactions?.map((t) => (
+                data.transactions?.map((t) => (
                   <li
                     key={t.id}
                     className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
                   >
                     <div className="flex items-center justify-between font-medium text-gray-900">
-                      <span className="capitalize">{t.type.replace(/_/g, " ")}</span>
+                      <span className="capitalize">
+                        {t.type.replace(/_/g, " ")}
+                      </span>
                       <span>৳{fmt(t.amount)}</span>
                     </div>
                     <div className="mt-1 flex flex-wrap justify-between gap-2 text-xs text-gray-500">
@@ -246,7 +248,7 @@ export default function MemberSection({
                   const remaining = d.originalAmount - d.settledAmount;
                   const isOwedToThem = d.toMember === memberName;
                   return (
-                                        <li
+                    <li
                       key={d.id}
                       className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
                     >
@@ -287,33 +289,35 @@ export default function MemberSection({
             </ul>
           )}
 
-                    {!isLoading && !error && data && type === "deposits" && (
+          {!isLoading && !error && data && type === "deposits" && (
             <ul className="space-y-2">
               {/* Filter to only show positive deposits */}
               {data.deposits?.filter((d) => d.amount > 0).length === 0 ? (
                 <p className="text-sm text-gray-500">No deposits yet.</p>
               ) : (
-                data.deposits?.filter((d) => d.amount > 0).map((d) => (
-                  <li
-                    key={d.id}
-                    className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
-                  >
-                    <div className="flex items-center justify-between font-medium text-gray-900">
-                      <span>{d.description}</span>
-                      <span>৳{fmt(d.amount)}</span>
-                    </div>
-                    <div className="mt-1 text-xs text-gray-500">
-                      {new Date(d.createdAt).toLocaleString("en-GB", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true,
-                      })}
-                    </div>
-                  </li>
-                ))
+                data.deposits
+                  ?.filter((d) => d.amount > 0)
+                  .map((d) => (
+                    <li
+                      key={d.id}
+                      className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
+                    >
+                      <div className="flex items-center justify-between font-medium text-gray-900">
+                        <span>{d.description}</span>
+                        <span>৳{fmt(d.amount)}</span>
+                      </div>
+                      <div className="mt-1 text-xs text-gray-500">
+                        {new Date(d.createdAt).toLocaleString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </div>
+                    </li>
+                  ))
               )}
             </ul>
           )}

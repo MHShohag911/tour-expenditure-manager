@@ -170,7 +170,7 @@ const GroupList = ({
                   </div>
                 </div>
 
-                <div className="mt-6 text-right space-x-2">
+                <div className="mt-6 md:text-right space-x-2 ">
                   <a
                     href={`/groups/${group._id}/summary`}
                     className="inline-block rounded-md border border--[#1DD100] text-[#1DD100] px-5 py-2 text-sm font-medium h-full transition hover:bg-[#1DD100] hover:text-white"
@@ -186,7 +186,7 @@ const GroupList = ({
                   <button
                     type="button"
                     onClick={() => handleDeleteGroup(group._id)}
-                    className="inline-block rounded-md border border-red-200 bg-white px-5 py-2 text-sm font-medium text-red-600 h-full transition hover:bg-red-50"
+                    className="inline-block rounded-md border border-red-200 bg-white px-5 py-2 text-sm font-medium text-red-600 h-full transition hover:bg-red-50 my-2"
                   >
                     Delete
                   </button>
