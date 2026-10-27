@@ -239,9 +239,9 @@ export default function Dashboard({ initialGroups }: { initialGroups: Group[] })
       <NavBar />
 
       <main className="min-h-screen flex-1">
-        <p className="my-10 text-center text-3xl font-bold">
-          Tour Expenditure Manager
-        </p>
+       <p className="my-10 text-center text-3xl font-bold text-[#111827]">
+  Tour Expenditure Manager
+</p>
 
         <GroupForm onAddGroup={addGroup} />
 

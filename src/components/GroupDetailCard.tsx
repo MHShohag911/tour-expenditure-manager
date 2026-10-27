@@ -60,6 +60,11 @@ export default function GroupDetailCard({
       title: "Delete member?",
       text: "Are you sure you want to remove this member?",
       icon: "warning",
+      confirmButtonColor: "#1DD100",
+      cancelButtonColor: "#ef4444",
+      customClass: {
+        confirmButton: "text-black font-semibold",
+      },
       showCancelButton: true,
       confirmButtonText: "Yes, delete it!",
     });
@@ -153,7 +158,7 @@ export default function GroupDetailCard({
             <button
               type="button"
               onClick={handleAddMember}
-              className="rounded-md bg-[#090040] px-4 py-3 text-white transition hover:bg-[#20116b]"
+              className="rounded-md bg-[#1DD100] px-3 py-2 font-semibold  transition hover:bg-[#19B300] text-white"
             >
               Add Member
             </button>
@@ -206,17 +211,13 @@ export default function GroupDetailCard({
 
                   <div className="grid grid-cols-2 md:grid-cols-4  gap-4 ">
                     <div className="mx-auto">
-                      <p className="text-xs font-medium text-gray-500">
-                        Paid
-                      </p>
+                      <p className="text-xs font-medium text-gray-500">Paid</p>
                       <p className="mt-1 text-base font-bold text-green-600">
                         ৳{fmt(member.totalPaid)}
                       </p>
                     </div>
                     <div className="mx-auto">
-                      <p className="text-xs font-medium text-gray-500">
-                        Owes
-                      </p>
+                      <p className="text-xs font-medium text-gray-500">Owes</p>
                       <p className="mt-1 text-base font-bold text-red-600">
                         ৳{fmt(member.totalOwed)}
                       </p>
@@ -355,7 +356,7 @@ export default function GroupDetailCard({
                               );
                             }
                           }}
-                          className="rounded-md bg-green-600 px-4 py-2 text-sm text-white transition hover:bg-green-700"
+                          className="rounded-md bg-green-600 px-3 py-1 text-sm text-white transition hover:bg-green-700"
                         >
                           Settle Debts from A/C
                         </button>
@@ -370,7 +371,7 @@ export default function GroupDetailCard({
                             onClick={() =>
                               setOpenDepositFor(`${group._id}:${member.name}`)
                             }
-                            className="rounded-lg border border-[#1DD100] bg-white px-4 py-2 text-sm font-medium text-[#1DD100] transition hover:bg-[#1DD100] hover:text-white"
+                            className="rounded-lg border border-[#1DD100] bg-white px-3 py-1 text-sm font-medium text-[#1DD100] transition hover:bg-[#1DD100] hover:text-white"
                           >
                             + Deposit
                           </button>

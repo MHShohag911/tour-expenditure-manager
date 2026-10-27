@@ -41,7 +41,7 @@ const ExpenseForm = ({ groups, groupId, onAddExpense }: ExpenseFormProps) => {
     "w-full max-h-12 rounded-md border border-gray-300 bg-white px-3 py-3 text-gray-900 outline-none transition focus:border-[#090040] focus:ring-1 focus:ring-[#090040] disabled:cursor-not-allowed disabled:bg-gray-100";
 
   const buttonClassName =
-    "rounded-md bg-[#090040] px-4 py-3 font-medium text-white transition hover:bg-[#20116b] disabled:cursor-not-allowed disabled:opacity-50";
+    "rounded-md px-3 py-2 font-medium transition disabled:cursor-not-allowed disabled:opacity-50";
 
   // Calculate custom shares and divide the remaining amount equally.
   const calculateCustomShares = (
@@ -350,8 +350,8 @@ const ExpenseForm = ({ groups, groupId, onAddExpense }: ExpenseFormProps) => {
                 }}
                 className={`${buttonClassName} ${
                   splitMode === "equal"
-                    ? ""
-                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    ? "bg-[#1DD100] text-white font-semibold"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
                 Equal Split
@@ -365,8 +365,8 @@ const ExpenseForm = ({ groups, groupId, onAddExpense }: ExpenseFormProps) => {
                 }}
                 className={`${buttonClassName} ${
                   splitMode === "custom"
-                    ? ""
-                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    ? "bg-[#1DD100] text-white font-semibold"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
                 Custom Split

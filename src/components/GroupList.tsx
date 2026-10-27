@@ -19,13 +19,13 @@ type GroupListProps = {
     amount: number,
     payerName: string,
     currentDateTime: string,
-    shares: { memberName: string; amount: number }[]
+    shares: { memberName: string; amount: number }[],
   ) => void;
   onAddDeposit: (
     groupId: string,
     memberName: string,
     amount: number,
-    description: string
+    description: string,
   ) => void;
 };
 
@@ -52,8 +52,11 @@ const GroupList = ({
       text: "Are you sure you want to delete this group?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#15D8B3",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#1DD100",
+      cancelButtonColor: "#ef4444",
+      customClass: {
+        confirmButton: "text-black font-semibold",
+      },
       confirmButtonText: "Yes, delete it!",
     });
 
@@ -98,26 +101,51 @@ const GroupList = ({
       {/* Finished Groups */}
       {finishedGroups.length > 0 && (
         <div className="mt-12 border-t-2 border-dashed border-gray-300 pt-8">
-          <h2 className="mb-6 text-2xl font-bold text-gray-700">Finished Tours</h2>
+          <h2 className="mb-6 text-2xl font-bold text-gray-700">
+            Finished Tours
+          </h2>
 
           {finishedGroups.map((group) => {
             // Calculate total spend and dates from expenses
-            const totalSpend = (group.expenses ?? []).reduce((sum, e) => sum + e.amount, 0);
+            const totalSpend = (group.expenses ?? []).reduce(
+              (sum, e) => sum + e.amount,
+              0,
+            );
 
             let dateRange = "No dates";
             if (group.expenses && group.expenses.length > 0) {
-              const dates = group.expenses.map((e) => new Date(e.createdAt || e.time));
-              const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
-              const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+              const dates = group.expenses.map(
+                (e) => new Date(e.createdAt || e.time),
+              );
+              const minDate = new Date(
+                Math.min(...dates.map((d) => d.getTime())),
+              );
+              const maxDate = new Date(
+                Math.max(...dates.map((d) => d.getTime())),
+              );
 
-              const fmtDate = (d: Date) => d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-              const days = Math.max(1, Math.ceil((maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24)));
+              const fmtDate = (d: Date) =>
+                d.toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                });
+              const days = Math.max(
+                1,
+                Math.ceil(
+                  (maxDate.getTime() - minDate.getTime()) /
+                    (1000 * 60 * 60 * 24),
+                ),
+              );
 
               dateRange = `${fmtDate(minDate)} - ${fmtDate(maxDate)} (${days} days)`;
             }
 
             return (
-              <div key={group._id} className="my-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div
+                key={group._id}
+                className="my-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+              >
                 <h2 className="text-2xl font-bold text-black">{group.name}</h2>
                 <p className="mt-1 text-sm text-gray-500">{dateRange}</p>
 
@@ -130,22 +158,34 @@ const GroupList = ({
                     <p className="text-gray-500">Total Spend</p>
                     <p className="font-semibold">৳{totalSpend.toFixed(2)}</p>
                   </div>
+                  <div>
+                    <p className="text-gray-500">Avg. Share</p>
+                    <p className="font-semibold">
+                      ৳
+                      {(group.members.length > 0
+                        ? totalSpend / group.members.length
+                        : 0
+                      ).toFixed(2)}
+                    </p>
+                  </div>
                 </div>
 
-                                <div className="mt-6 flex justify-end gap-2">
-                  <Link
-                    href={`/groups/${group._id}`}
-                    className="inline-block rounded-md bg-[#090040] px-5 py-2 text-white transition hover:bg-[#20116b]"
-                  >
-                    View Details
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteGroup(group._id)}
-                    className="inline-block rounded-md border border-red-200 bg-white px-5 py-2 text-red-600 transition hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
+                <div className="mt-6 text-right">
+                  <div className="">
+                    <Link
+                      href={`/groups/${group._id}`}
+                      className="inline-block rounded-md bg-[#1DD100] px-5 py-2 border-2 border-[#1DD100] text-sm text-white h-full transition hover:bg-[#19B300] hover:border-[#19B300] mr-2"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteGroup(group._id)}
+                      className="inline-block rounded-md border border-red-200 bg-white px-5 py-2 text-red-600 transition hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             );
