@@ -32,7 +32,7 @@ export default function GroupForm({ onAddGroup }: GroupFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-3">
+    <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-3 ">
       <input
         type="text"
         value={groupName}
@@ -45,7 +45,7 @@ export default function GroupForm({ onAddGroup }: GroupFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-purple-700 px-5 py-2 text-white disabled:opacity-50"
+        className="rounded-lg bg-[#1DD100] px-5 py-2 text-white disabled:opacity-50"
       >
         {loading ? "Creating..." : "Create Group"}
       </button>

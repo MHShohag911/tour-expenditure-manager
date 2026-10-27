@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { randomUUID } from "crypto";
 import clientPromise from "@/lib/mongodb";
+import { mutateGroup } from "@/lib/accounting";
+import type { Group } from "@/types/group";
 
 const DATABASE_NAME = "Tour-Expenditure-Management";
 const COLLECTION_NAME = "TeamDB";
@@ -17,26 +19,13 @@ type ExpenseRecord = {
   payerName: string;
   time: string;
   createdAt?: string;
-  shares?: {
-    memberName: string;
-    amount: number;
-  }[];
+  sequence?: number;
+  shares?: { memberName: string; amount: number; note?: string }[];
 };
 
-type MemberRecord = {
-  name: string;
-  totalPaid: number;
-  totalOwed: number;
+type GroupRecord = {
+  expenses?: ExpenseRecord[];
 };
-
-type ExtraChargeRecord = {
-  extraAmount: number;
-  paidBy: string;
-  owedBy: string;
-};
-
-const toCents = (amount: number) => Math.round(amount * 100);
-const fromCents = (cents: number) => cents / 100;
 
 const parseLegacyTime = (value: string): string | null => {
   if (typeof value !== "string") return null;
@@ -97,10 +86,10 @@ export async function DELETE(
     const client = await clientPromise;
     const collection = client
       .db(DATABASE_NAME)
-      .collection(COLLECTION_NAME);
+      .collection<GroupRecord>(COLLECTION_NAME);
 
     const group = await collection.findOne({
-      _id: new ObjectId(id),
+      _id: new ObjectId(id)
     });
 
     if (!group) {
@@ -110,19 +99,16 @@ export async function DELETE(
       );
     }
 
-    const rawExpenses = (group.expenses ?? []) as ExpenseRecord[];
-    const members = (group.members ?? []) as MemberRecord[];
-    const extraCharges = (group.extraCharges ?? []) as ExtraChargeRecord[];
-
     const now = new Date().toISOString();
 
-    // Ensure legacy expenses have stable ids so they can be targeted.
-    const expenses = rawExpenses.map((item) => {
+    const normalized = (group.expenses ?? []).map((item, i) => {
       const hasId = typeof item.id === "string" && item.id.length > 0;
       const hasCreatedAt =
         typeof item.createdAt === "string" && item.createdAt.length > 0;
+      const hasSequence =
+        typeof item.sequence === "number" && Number.isFinite(item.sequence);
 
-      if (hasId && hasCreatedAt) return item;
+      if (hasId && hasCreatedAt && hasSequence) return item;
 
       return {
         ...item,
@@ -130,92 +116,41 @@ export async function DELETE(
         createdAt: hasCreatedAt
           ? item.createdAt
           : parseLegacyTime(item.time) ?? now,
+        sequence: hasSequence ? item.sequence : i + 1,
       };
     });
 
-    const targetIndex = expenses.findIndex(
-      (expense) => expense.id === expenseId
-    );
-
-    if (targetIndex === -1) {
+    if (!normalized.some((expense) => expense.id === expenseId)) {
       return NextResponse.json(
         { message: "Expense not found." },
         { status: 404 }
       );
     }
 
-    const remainingExpenses = expenses.filter(
-      (_, i) => i !== targetIndex
-    );
+    let updatedGroup: Group | null = null;
 
-    const updatedMembers = members.map((member) => {
-      const totalPaidFromExpensesCents = remainingExpenses.reduce(
-        (total, expense) =>
-          expense.payerName === member.name
-            ? total + toCents(expense.amount)
-            : total,
-        0
-      );
-
-      const totalOwedFromExpensesCents = remainingExpenses.reduce(
-        (total, expense) => {
-          if (expense.shares && expense.shares.length > 0) {
-            const memberShare = expense.shares.find(
-              (share) => share.memberName === member.name
-            );
-            return total + toCents(memberShare?.amount ?? 0);
-          }
-
-          if (members.length === 0) return total;
-
-          return (
-            total + Math.floor(toCents(expense.amount) / members.length)
-          );
-        },
-        0
-      );
-
-      const totalPaidFromExtraChargesCents = extraCharges.reduce(
-        (total, charge) =>
-          charge.paidBy === member.name
-            ? total + toCents(charge.extraAmount)
-            : total,
-        0
-      );
-
-      const totalOwedFromExtraChargesCents = extraCharges.reduce(
-        (total, charge) =>
-          charge.owedBy === member.name
-            ? total + toCents(charge.extraAmount)
-            : total,
-        0
-      );
-
-      return {
-        ...member,
-        totalPaid: fromCents(
-          totalPaidFromExpensesCents + totalPaidFromExtraChargesCents
-        ),
-        totalOwed: fromCents(
-          totalOwedFromExpensesCents + totalOwedFromExtraChargesCents
-        ),
-      };
-    });
-
-    await collection.updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          expenses: remainingExpenses,
-          members: updatedMembers,
-        },
+    try {
+      updatedGroup = await mutateGroup(id, (draft: Group) => {
+        draft.expenses = normalized;
+        draft.expenses = normalized.filter(
+          (expense) => expense.id !== expenseId
+        );
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message === "FINISHED") {
+        return NextResponse.json(
+          { message: "Cannot delete expense from a finished tour." },
+          { status: 409 }
+        );
       }
-    );
+      throw error;
+    }
 
     return NextResponse.json({
       message: "Expense deleted and balances recalculated.",
-      expenses: remainingExpenses,
-      members: updatedMembers,
+      expenses: updatedGroup?.expenses ?? [],
+      group: updatedGroup,
     });
   } catch (error) {
     console.error("Failed to delete expense:", error);

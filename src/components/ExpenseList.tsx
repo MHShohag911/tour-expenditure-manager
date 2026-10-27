@@ -1,6 +1,8 @@
 import Swal from "sweetalert2";
 import { axiosSecure } from "../hooks/useAxiosSecure";
 import type { Group, Expense } from "@/types/group";
+import { useState } from "react";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 type ExpenseListProps = {
   groupId: string;
@@ -18,8 +20,8 @@ const ExpenseList = ({
   isFinished,
   onRefresh,
 }: ExpenseListProps) => {
+  const [showAll, setShowAll] = useState(false);
   const handleDelete = async (expense: Expense) => {
-    console.log(expense)
     if (!expense.id) {
       await Swal.fire({
         title: "Cannot delete",
@@ -35,17 +37,19 @@ const ExpenseList = ({
         text: "You won't be able to revert this!",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#15D8B3",
-        cancelButtonColor: "#d33",
+        confirmButtonColor: "#1DD100",
+      cancelButtonColor: "#ef4444",
+      customClass: {
+        confirmButton: "text-black font-semibold",
+      },
         confirmButtonText: "Yes, delete it!",
       });
 
       if (!result.isConfirmed) return;
 
-      await axiosSecure.delete(
-        `/teamDB/${groupId}/removeExpenseById`,
-        { params: { expenseId: expense.id } }
-      );
+      await axiosSecure.delete(`/teamDB/${groupId}/removeExpenseById`, {
+        params: { expenseId: expense.id },
+      });
 
       await onRefresh();
 
@@ -54,10 +58,8 @@ const ExpenseList = ({
         text: "The expense has been deleted.",
         icon: "success",
         showConfirmButton: false,
-        timer: 1500
+        timer: 1500,
       });
-
-      
     } catch (err) {
       console.error("Error deleting expense:", err);
       await Swal.fire({
@@ -72,7 +74,7 @@ const ExpenseList = ({
     <div className="mt-5 text-black">
       <p className="font-bold text-black">Expense Details:</p>
       <ul>
-        {expenses.map((expense, index) => (
+        {(showAll ? expenses : expenses.slice(0, 5)).map((expense, index) => (
           <li
             className="flex justify-between items-center"
             key={expense.id ?? `${expense.description}-${expense.time}`}
@@ -85,18 +87,30 @@ const ExpenseList = ({
               </div>
               <span className="text-xs ml-4 text-gray-600">{expense.time}</span>
             </div>
-            {!isFinished &&
-            <button
-              type="button"
-              className="rounded-md bg-purple-700 px-4 py-2 text-white hover:bg-purple-800"
-              disabled={Boolean(isFinished)}
-              onClick={() => handleDelete(expense)}
-            >
-              Delete
-            </button>}
+            {!isFinished && (
+              <button
+                type="button"
+                className="rounded-md px-4 py-2 text-red-500"
+                disabled={Boolean(isFinished)}
+                onClick={() => handleDelete(expense)}
+              >
+                <FaRegTrashAlt />
+              </button>
+            )}
           </li>
         ))}
       </ul>
+            {expenses.length > 5 && (
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => setShowAll(!showAll)}
+            className="rounded-md border border-[#090040] px-4 py-2 text-sm text-[#090040] transition hover:bg-[#090040] hover:text-white"
+          >
+            {showAll ? "Show Less" : `View All ${expenses.length} Expenses`}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
