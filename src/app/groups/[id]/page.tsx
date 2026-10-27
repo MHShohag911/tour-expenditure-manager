@@ -47,7 +47,7 @@ export default async function GroupDetailPage({ params }: PageProps) {
   return (
     <div className="container mx-auto flex min-h-screen flex-col px-4">
       <main className="flex-1 py-8">
-        <Link href="/" className="mb-6 inline-block text-sm text-blue-600 underline">
+        <Link href="/" className="mb-6 font-bold inline-block text-sm text-[#1DD100]">
           ← Back to groups
         </Link>
         

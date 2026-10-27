@@ -104,7 +104,7 @@ export default function MemberSection({
     <section className="mt-8 border border-gray-200 rounded-lg bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-baseline gap-3">
-          <h2 className="text-xl font-bold text-black">{title}</h2>
+          <h2 className="text-xl font-bold text-gray-700">{title}</h2>
           {data && type === "shared" && (
             <span className="text-sm text-gray-500">
               Total: ৳
@@ -132,7 +132,7 @@ export default function MemberSection({
         </div>
         <button
           onClick={handleToggle}
-          className="rounded-md bg-[#090040] px-4 py-2 text-sm text-white transition hover:bg-[#20116b]"
+          className="rounded-md bg-[#1DD100] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#19B300]"
         >
           {isOpen ? "Hide" : "Show"}
         </button>

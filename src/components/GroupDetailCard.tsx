@@ -348,11 +348,13 @@ export default function GroupDetailCard({
                                 );
                               }
                               if (refreshGroups) await refreshGroups();
-                              Swal.fire(
-                                "Paid!",
-                                "Your debts have been settled from A/C.",
-                                "success",
-                              );
+                              Swal.fire({
+                                title: "Paid!",
+                                text: "Your debts have been settled from A/C.",
+                                icon: "success",
+                                showConfirmButton: false,
+                                timer: 1500,
+                              });
                             } catch (err) {
                               Swal.fire(
                                 "Error",

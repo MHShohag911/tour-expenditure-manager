@@ -103,7 +103,7 @@ export default async function MemberPage({ params }: PageProps) {
     <div className="container mx-auto max-w-4xl px-4 py-8">
       <Link
         href={`/groups/${group._id}`}
-        className="text-sm text-blue-600 underline"
+        className="text-sm text-[#1DD100] font-bold"
       >
         ← Back
       </Link>
@@ -111,44 +111,46 @@ export default async function MemberPage({ params }: PageProps) {
       <h1 className="mt-4 text-3xl font-bold text-black">{member.name}</h1>
       <p className="text-gray-600">in {group.name}</p>
 
-      <section className="mt-6 grid grid-cols-2 gap-4 rounded-xl border bg-white p-5 md:grid-cols-3">
+      <section className="mt-6 grid grid-cols-2 gap-4 rounded-xl border border-gray-300 shadow bg-white p-5 md:grid-cols-3">
         <div>
           <p className="text-xs  text-gray-500">Total Paid</p>
-          <p className="text-lg font-semibold text-green-600">
+          <p className="text-lg font-bold text-green-500">
             ৳{fmt(member.totalPaid)}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Total Owed</p>
-          <p className="text-lg font-semibold text-red-600">
+          <p className="text-lg font-bold text-red-600">
             ৳{fmt(member.totalOwed)}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Total Deposits</p>
-          <p className="text-lg font-semibold text-indigo-700">
+          <p className="text-lg font-bold text-green-700">
             ৳{fmt(totalDeposits)}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">A/C Balance</p>
-          <p className="text-lg font-semibold text-blue-700">
+          <p className="text-lg font-semibold text-orange-600">
             ৳{fmt(member.accountBalance ?? 0)}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Net Tour Balance</p>
 
-          <p className="text-lg font-semibold text-gray-900">
+          <p className="text-lg font-semibold text-gray-600">
             {Math.abs(net) < 0.005 ? (
-              <span className="text-[#1DD100]">Settled</span>
+              <span className="text-green-600 font-bold">Settled</span>
             ) : net > 0 ? (
               <>
-                <span className="font-normal ">Receivable</span> <span className="text-[#1DD100]">৳{fmt(net)}</span>
+                <span className="font-normal ">Receivable</span>{" "}
+                <span className="text-[#1DD100]">৳{fmt(net)}</span>
               </>
             ) : (
               <>
-                <span className=" ">Payable</span> <span className="text-red-600">৳{fmt(-net)}</span>
+                <span className=" ">Payable</span>{" "}
+                <span className="text-red-600">৳{fmt(-net)}</span>
               </>
             )}
           </p>
