@@ -105,7 +105,7 @@ const ExpenseList = ({
           <button
             type="button"
             onClick={() => setShowAll(!showAll)}
-            className="rounded-md border border-[#090040] px-4 py-2 text-sm text-[#090040] transition hover:bg-[#090040] hover:text-white"
+            className="rounded-md border border-[#1DD100] px-4 py-2 text-sm text-[#1DD100] transition hover:bg-[#1DD100] hover:text-white"
           >
             {showAll ? "Show Less" : `View All ${expenses.length} Expenses`}
           </button>
