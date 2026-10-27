@@ -106,7 +106,7 @@ const GroupList = ({
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {[...finishedGroups].reverse().map((group) => {
+            {[...finishedGroups].map((group) => {
               // Calculate total spend and dates from expenses
               const totalSpend = (group.expenses ?? []).reduce(
                 (sum, e) => sum + e.amount,
