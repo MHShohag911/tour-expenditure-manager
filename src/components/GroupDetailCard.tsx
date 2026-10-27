@@ -102,7 +102,7 @@ export default function GroupDetailCard({
               <button
                 type="button"
                 onClick={() => handleSetGroup(group._id)}
-                className="rounded-md bg-[#090040] px-4 py-2 text-white transition hover:bg-[#20116b]"
+                className="rounded-md bg-[#1DD100] px-4 py-2 text-white transition hover:bg-[#1DD100]"
               >
                 Set Group
               </button>
@@ -112,7 +112,7 @@ export default function GroupDetailCard({
               <button
                 type="button"
                 onClick={() => handleFinishTour(group._id)}
-                className="rounded-md bg-[#090040] px-4 py-2 text-white transition hover:bg-[#20116b]"
+                className="rounded-md text-[#1DD100] border px-4 py-2 text-sm font-extrabold transition hover:bg-[#1DD100] hover:text-white"
               >
                 Finish Tour
               </button>
@@ -122,7 +122,7 @@ export default function GroupDetailCard({
               <button
                 type="button"
                 onClick={() => onDeleteGroup(group._id)}
-                className="rounded-md bg-[#090040] px-4 py-2 text-white transition hover:bg-[#20116b]"
+                className="rounded-md text-red-600 px-4 py-2 text-sm font-medium border transition hover:bg-red-600 hover:text-white"
               >
                 Delete Group
               </button>
@@ -187,7 +187,7 @@ export default function GroupDetailCard({
                       </span>
                       <Link
                         href={`/groups/${group._id}/members/${encodeURIComponent(member.name)}`}
-                        className="text-lg font-semibold text-gray-900 underline hover:text-blue-700"
+                        className="text-lg font-semibold text-gray-600 hover:text-blue-700"
                       >
                         {member.name}
                       </Link>
@@ -206,42 +206,50 @@ export default function GroupDetailCard({
 
                   <div className="grid grid-cols-2 md:grid-cols-4  gap-4 ">
                     <div className="mx-auto">
-                      <p className="text-xs font-medium uppercase text-gray-500">
+                      <p className="text-xs font-medium text-gray-500">
                         Paid
                       </p>
-                      <p className="mt-1 text-base font-medium text-gray-900">
+                      <p className="mt-1 text-base font-bold text-green-600">
                         ৳{fmt(member.totalPaid)}
                       </p>
                     </div>
                     <div className="mx-auto">
-                      <p className="text-xs font-medium uppercase text-gray-500">
+                      <p className="text-xs font-medium text-gray-500">
                         Owes
                       </p>
-                      <p className="mt-1 text-base font-medium text-gray-900">
+                      <p className="mt-1 text-base font-bold text-red-600">
                         ৳{fmt(member.totalOwed)}
                       </p>
                     </div>
                     <div className="mx-auto">
-                      <p className="text-xs font-medium uppercase text-gray-500">
+                      <p className="text-xs font-medium  text-gray-500">
                         A/C Balance
                       </p>
-                      <p className="mt-1 text-base font-medium text-blue-700">
+                      <p className="mt-1 text-base font-bold text-gray-900">
                         ৳{fmt(member.accountBalance ?? 0)}
                       </p>
                     </div>
 
                     <div className="mx-auto">
-                      <p className="text-xs font-medium uppercase text-gray-500">
+                      <p className="text-xs font-medium text-gray-500">
                         {isSettled
                           ? "Status"
                           : isCreditor
-                            ? "Will Get"
-                            : "Will Pay"}
+                            ? "Receivable"
+                            : "Payable"}
                       </p>
-                      <p
-                        className={`mt-1 text-base font-semibold ${isSettled ? "text-gray-600" : isCreditor ? "text-green-600" : "text-red-600"}`}
-                      >
-                        {isSettled ? "Settled" : `৳${fmt(Math.abs(net))}`}
+                      <p className="mt-1 text-base font-semibold text-gray-900">
+                        {isSettled ? (
+                          <span className="text-[#1DD100]">Settled</span>
+                        ) : (
+                          <span
+                            className={
+                              isCreditor ? "text-[#1DD100]" : "text-red-600"
+                            }
+                          >
+                            ৳{fmt(Math.abs(net))}
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -362,7 +370,7 @@ export default function GroupDetailCard({
                             onClick={() =>
                               setOpenDepositFor(`${group._id}:${member.name}`)
                             }
-                            className="rounded-md border border-[#090040] px-4 py-2 text-sm text-[#090040] transition hover:bg-[#090040] hover:text-white"
+                            className="rounded-lg border border-[#1DD100] bg-white px-4 py-2 text-sm font-medium text-[#1DD100] transition hover:bg-[#1DD100] hover:text-white"
                           >
                             + Deposit
                           </button>

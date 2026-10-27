@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export function NavBar() {
   return (
-    <nav className="mx-auto w-full my-5 p-2 rounded-xl border border-gray-200 lg:pl-6 shadow-xl">
+    <nav className="mx-auto w-full p-2 rounded-xl border border-gray-300 lg:pl-6">
       <div className="relative mx-auto flex items-center justify-between">
         <Link
           href="/"

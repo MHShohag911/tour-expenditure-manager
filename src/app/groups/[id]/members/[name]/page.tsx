@@ -39,7 +39,7 @@ export default async function MemberPage({ params }: PageProps) {
       { $match: { _id: new ObjectId(id) } },
       {
         $addFields: {
-                    totalDepositsForMember: {
+          totalDepositsForMember: {
             $reduce: {
               input: { $ifNull: ["$deposits", []] },
               initialValue: 0,
@@ -48,8 +48,8 @@ export default async function MemberPage({ params }: PageProps) {
                   {
                     $and: [
                       { $eq: ["$$this.memberName", memberName] },
-                      { $gt: ["$$this.amount", 0] }
-                    ]
+                      { $gt: ["$$this.amount", 0] },
+                    ],
                   },
                   { $add: ["$$value", "$$this.amount"] },
                   "$$value",
@@ -101,7 +101,10 @@ export default async function MemberPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-      <Link href={`/groups/${group._id}`} className="text-sm text-blue-600 underline">
+      <Link
+        href={`/groups/${group._id}`}
+        className="text-sm text-blue-600 underline"
+      >
         ← Back
       </Link>
 
@@ -110,39 +113,44 @@ export default async function MemberPage({ params }: PageProps) {
 
       <section className="mt-6 grid grid-cols-2 gap-4 rounded-xl border bg-white p-5 md:grid-cols-3">
         <div>
-          <p className="text-xs uppercase text-gray-500">Total Paid</p>
-          <p className="text-lg font-semibold text-gray-900">
+          <p className="text-xs  text-gray-500">Total Paid</p>
+          <p className="text-lg font-semibold text-green-600">
             ৳{fmt(member.totalPaid)}
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase text-gray-500">Total Owed</p>
-          <p className="text-lg font-semibold text-gray-900">
+          <p className="text-xs text-gray-500">Total Owed</p>
+          <p className="text-lg font-semibold text-red-600">
             ৳{fmt(member.totalOwed)}
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase text-gray-500">Total Deposits</p>
+          <p className="text-xs text-gray-500">Total Deposits</p>
           <p className="text-lg font-semibold text-indigo-700">
             ৳{fmt(totalDeposits)}
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase text-gray-500">A/C Balance</p>
+          <p className="text-xs text-gray-500">A/C Balance</p>
           <p className="text-lg font-semibold text-blue-700">
             ৳{fmt(member.accountBalance ?? 0)}
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase text-gray-500">Net Tour Balance</p>
-          <p
-            className={`text-lg font-semibold ${Math.abs(net) < 0.005 ? "text-gray-600" : net > 0 ? "text-green-600" : "text-red-600"}`}
-          >
-            {Math.abs(net) < 0.005
-              ? "Even"
-              : net > 0
-                ? `Will Get ৳${fmt(net)}`
-                : `Will Pay ৳${fmt(-net)}`}
+          <p className="text-xs text-gray-500">Net Tour Balance</p>
+
+          <p className="text-lg font-semibold text-gray-900">
+            {Math.abs(net) < 0.005 ? (
+              <span className="text-[#1DD100]">Settled</span>
+            ) : net > 0 ? (
+              <>
+                <span className="font-normal ">Receivable</span> <span className="text-[#1DD100]">৳{fmt(net)}</span>
+              </>
+            ) : (
+              <>
+                <span className=" ">Payable</span> <span className="text-red-600">৳{fmt(-net)}</span>
+              </>
+            )}
           </p>
         </div>
       </section>

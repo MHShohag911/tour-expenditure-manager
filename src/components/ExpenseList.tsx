@@ -2,6 +2,7 @@ import Swal from "sweetalert2";
 import { axiosSecure } from "../hooks/useAxiosSecure";
 import type { Group, Expense } from "@/types/group";
 import { useState } from "react";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 type ExpenseListProps = {
   groupId: string;
@@ -36,8 +37,11 @@ const ExpenseList = ({
         text: "You won't be able to revert this!",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#15D8B3",
-        cancelButtonColor: "#d33",
+        confirmButtonColor: "#1DD100",
+      cancelButtonColor: "#ef4444",
+      customClass: {
+        confirmButton: "text-black font-semibold",
+      },
         confirmButtonText: "Yes, delete it!",
       });
 
@@ -86,11 +90,11 @@ const ExpenseList = ({
             {!isFinished && (
               <button
                 type="button"
-                className="rounded-md bg-purple-700 px-4 py-2 text-white hover:bg-purple-800"
+                className="rounded-md px-4 py-2 text-red-500"
                 disabled={Boolean(isFinished)}
                 onClick={() => handleDelete(expense)}
               >
-                Delete
+                <FaRegTrashAlt />
               </button>
             )}
           </li>
