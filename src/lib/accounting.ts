@@ -10,7 +10,7 @@ import type {
     AccountTransaction,
 } from "@/types/group";
 
-const DATABASE_NAME = "Tour-Expenditure-Management-Test";
+const DATABASE_NAME = "Tour-Expenditure-Management";
 const COLLECTION_NAME = "TeamDB";
 
 export const toCents = (amount: number) => Math.round(amount * 100);
