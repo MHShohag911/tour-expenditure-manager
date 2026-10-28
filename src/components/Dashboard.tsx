@@ -143,11 +143,11 @@ export default function Dashboard({
 
     if (!group) return;
 
-    if (group.members.length <= 1) {
+    if (group.members.length <= 0) {
       await Swal.fire({
         icon: "error",
         title: "Add Members",
-        text: "Please add at least two group members.",
+        text: "Please add at least one members.",
       });
       return;
     }
