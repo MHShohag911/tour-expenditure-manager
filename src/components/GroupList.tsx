@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import GroupDetailCard from "./GroupDetailCard";
 import { axiosSecure } from "../hooks/useAxiosSecure";
 import type { Group } from "@/types/group";
+import { FaTrash } from "react-icons/fa";
 
 type GroupListProps = {
   groups: Group[];
@@ -148,15 +149,26 @@ const GroupList = ({
                   className="my-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
                 >
                   <div className="">
-                    <h2 className="text-2xl font-bold text-gray-700">
-                      {group.name}
-                    </h2>
+                    <div className="flex justify-between">
+                      <h2 className="text-2xl font-bold text-gray-700">
+                        {group.name}
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteGroup(group._id)}
+                        className="inline-block rounded-full border border-red-200 bg-white p-3 text-sm font-medium text-red-600 h-full transition hover:bg-red-50 my-2  ml-2"
+                      >
+                        <FaTrash></FaTrash>
+                      </button>
+                    </div>
                     <p className="mt-1 text-sm text-gray-500">{dateRange}</p>
 
                     <div className="mt-4 flex flex-wrap gap-6 text-sm">
                       <div>
                         <p className="text-gray-500">Members</p>
-                        <p className="font-semibold text-center">{group.members.length}</p>
+                        <p className="font-semibold text-center">
+                          {group.members.length}
+                        </p>
                       </div>
                       <div>
                         <p className="text-gray-500">Total Spend</p>
@@ -190,13 +202,6 @@ const GroupList = ({
                     >
                       View Details
                     </Link>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteGroup(group._id)}
-                      className="inline-block rounded-md border border-red-200 bg-white px-5 py-2 text-sm font-medium text-red-600 h-full transition hover:bg-red-50 my-2  ml-2"
-                    >
-                      Delete
-                    </button>
                   </div>
                 </div>
               );
