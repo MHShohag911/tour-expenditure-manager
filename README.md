@@ -22,11 +22,6 @@ Tour Expenditure Manager simplifies group expense management by recording expens
   <img src="screenshots/image-1.png" alt="Web Summary" width="600">
 </p>
 
-![Home Page](image-2.png)
-![Members](image-3.png)
-![Member Details](image-4.png)
-![Finish Tour](image.png)
-![Summary Page](image-1.png)
 
 ## Key Features
 
