@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { axiosSecure } from "../hooks/useAxiosSecure";
+import Swal from "sweetalert2";
+import { useRouter } from "next/navigation";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 type AccountTransaction = {
   id: string;
@@ -69,6 +72,7 @@ export default function MemberSection({
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState<SectionData | null>(null);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleToggle = async () => {
     if (isOpen) {
@@ -291,7 +295,6 @@ export default function MemberSection({
 
           {!isLoading && !error && data && type === "deposits" && (
             <ul className="space-y-2">
-              {/* Filter to only show positive deposits */}
               {data.deposits?.filter((d) => d.amount > 0).length === 0 ? (
                 <p className="text-sm text-gray-500">No deposits yet.</p>
               ) : (
@@ -300,22 +303,77 @@ export default function MemberSection({
                   .map((d) => (
                     <li
                       key={d.id}
-                      className="rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
+                      className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm shadow-sm"
                     >
-                      <div className="flex items-center justify-between font-medium text-gray-900">
-                        <span>{d.description}</span>
-                        <span>৳{fmt(d.amount)}</span>
+                      <div>
+                        <div className="flex items-center gap-2 font-medium text-gray-900">
+                          <span>{d.description}</span>
+                          <span className="text-[#1DD100]">
+                            ৳{fmt(d.amount)}
+                          </span>
+                        </div>
+                        <div className="mt-1 text-xs text-gray-500">
+                          {new Date(d.createdAt).toLocaleString("en-GB", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}
+                        </div>
                       </div>
-                      <div className="mt-1 text-xs text-gray-500">
-                        {new Date(d.createdAt).toLocaleString("en-GB", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const result = await Swal.fire({
+                            title: "Delete Deposit?",
+                            text: "Are you sure you want to remove this deposit? This will affect your A/C balance.",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#1DD100",
+                            cancelButtonColor: "#6b7280",
+                            confirmButtonText: "Yes, delete it!",
+                          });
+
+                          if (!result.isConfirmed) return;
+
+                          try {
+                            await axiosSecure.delete(
+                              `/teamDB/${groupId}/deposits?depositId=${d.id}`,
+                            );
+
+                            // Refresh data by clearing the cache
+                            setData(null);
+
+                            // Reload the deposits
+                            const response = await axiosSecure.get(
+                              `/teamDB/${groupId}/members/${encodeURIComponent(memberName)}/section?type=deposits`,
+                            );
+                            setData(response.data);
+                            router.refresh();
+
+                            Swal.fire({
+                              title: "Deleted!",
+                              text: "The deposit has been removed.",
+                              icon: "success",
+                              showConfirmButton: false,
+                              timer: 1500,
+                            });
+                          } catch (err) {
+                            console.error("Failed to delete deposit", err);
+                            Swal.fire(
+                              "Error",
+                              "Could not delete deposit.",
+                              "error",
+                            );
+                          }
+                        }}
+                        className="rounded-md p-2 text-red-600 transition "
+                        title="Delete deposit"
+                      >
+                        <FaRegTrashAlt/>
+                      </button>
                     </li>
                   ))
               )}

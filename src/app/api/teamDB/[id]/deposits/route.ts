@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import clientPromise from "@/lib/mongodb";
 import { mutateGroup, toCents } from "@/lib/accounting";
 import type { Deposit, Group } from "@/types/group";
+import { NextResponse } from "next/server";
 
 const DATABASE_NAME = "Tour-Expenditure-Management-Test";
 const COLLECTION_NAME = "TeamDB";
@@ -153,85 +154,59 @@ export async function DELETE(
     const depositId = searchParams.get("depositId");
 
     if (!ObjectId.isValid(id)) {
-      return Response.json(
+      return NextResponse.json(
         { message: "Invalid group ID." },
         { status: 400 },
       );
     }
 
     if (!depositId) {
-      return Response.json(
+      return NextResponse.json(
         { message: "Missing deposit ID." },
         { status: 400 },
       );
     }
 
-    const client = await clientPromise;
-    const collection = client
-      .db(DATABASE_NAME)
-      .collection<GroupDocument>(COLLECTION_NAME);
-
-    const group = await collection.findOne({
-      _id: new ObjectId(id),
-    });
-
-    if (!group) {
-      return Response.json(
-        { message: "Group not found." },
-        { status: 404 },
-      );
-    }
-
-    if (group.isFinished === true) {
-      return Response.json(
-        { message: "Cannot delete a deposit from a finished tour." },
-        { status: 409 },
-      );
-    }
-
-    let found = false;
     let updatedGroup: Group | null = null;
 
     try {
       updatedGroup = await mutateGroup(id, (draft: Group) => {
-        if (draft.isFinished === true) {
-          throw new Error("FINISHED");
-        }
-
         const deposits = draft.deposits ?? [];
-        if (!deposits.some((d) => d.id === depositId)) {
-          throw new Error("DEPOSIT_NOT_FOUND");
+        const target = deposits.find((d) => d.id === depositId);
+
+        if (!target) throw new Error("DEPOSIT_NOT_FOUND");
+
+        // Only allow deleting actual deposits (positive amounts)
+        if (target.amount <= 0) {
+          throw new Error("CANNOT_DELETE_PAYMENT");
         }
 
-        found = true;
         draft.deposits = deposits.filter((d) => d.id !== depositId);
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
-      if (message === "FINISHED") {
-        return Response.json(
-          { message: "Cannot delete a deposit from a finished tour." },
-          { status: 409 },
-        );
-      }
       if (message === "DEPOSIT_NOT_FOUND") {
-        return Response.json(
+        return NextResponse.json(
           { message: "Deposit not found." },
           { status: 404 },
+        );
+      }
+      if (message === "CANNOT_DELETE_PAYMENT") {
+        return NextResponse.json(
+          { message: "Cannot delete a payment record. Only deposits can be removed." },
+          { status: 400 },
         );
       }
       throw error;
     }
 
-    return Response.json({
+    return NextResponse.json({
       message: "Deposit deleted.",
-      deleted: found,
       group: updatedGroup,
     });
   } catch (error) {
     console.error("Failed to delete deposit:", error);
-
-    return Response.json(
+    return NextResponse.json(
       { message: "Failed to delete deposit." },
       { status: 500 },
     );
