@@ -146,7 +146,7 @@ const GroupList = ({
               return (
                 <div
                   key={group._id}
-                  className="my-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                  className="my-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm animate-fade-in-up"
                 >
                   <div className="">
                     <div className="flex justify-between">

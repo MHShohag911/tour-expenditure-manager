@@ -98,7 +98,7 @@ export default function GroupDetailCard({
 
   return (
     <div className="border-t-2 border-dashed border-[#1DD100] mt-8">
-      <div className="my-8 rounded-xl border border-gray-200 bg-white py-2 shadow-md md:py-8">
+      <div className="my-8 rounded-xl border border-gray-200 bg-white py-2 shadow-md md:py-8 animate-fade-in-up">
         <div className="p-5">
           <div className="flex flex-col justify-between space-y-2 md:flex-row md:space-y-0">
             <h2 className="text-3xl font-bold text-black">{group.name}</h2>
