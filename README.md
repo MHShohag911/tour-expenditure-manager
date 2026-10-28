@@ -6,21 +6,35 @@ A web-based application for managing group tour expenses, tracking individual co
 
 Tour Expenditure Manager simplifies group expense management by recording expenses, splitting shared costs, tracking individual payments, and calculating each member's financial responsibility. It supports equal splits, custom expense shares, individual items, a per-member A/C balance system, and PDF export of the final tour summary.
 
-<p align="center">
-  <img src="screenshots/image-2.png" alt="Web Summary" width="600">
-</p>
-<p align="center">
-  <img src="screenshots/image-3.png" alt="Web Summary" width="600">
-</p>
-<p align="center">
-  <img src="screenshots/image-4.png" alt="Web Summary" width="600">
-</p>
-<p align="center">
-  <img src="screenshots/image.png" alt="Web Summary" width="600">
-</p>
-<p align="center">
-  <img src="screenshots/image-1.png" alt="Web Summary" width="600">
-</p>
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <img src="./screenshots/home.png" alt="Home Page" width="100%"><br>
+        <sub><b>Home Page</b></sub>
+      </td>
+      <td align="center" width="50%">
+        <img src="./screenshots/members.png" alt="Members" width="100%"><br>
+        <sub><b>Members</b></sub>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="50%">
+        <img src="./screenshots/member-details.png" alt="Member Details" width="100%"><br>
+        <sub><b>Member Details</b></sub>
+      </td>
+      <td align="center" width="50%">
+        <img src="./screenshots/finish-tour.png" alt="Finish Tour" width="100%"><br>
+        <sub><b>Finish Tour</b></sub>
+      </td>
+    </tr>
+  </table>
+  
+  <br>
+  <img src="./screenshots/summary.png" alt="Summary Page" width="80%"><br>
+  <sub><b>Summary Page & PDF Export</b></sub>
+</div>
 
 
 ## Key Features
