@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
 import type { Group } from "@/types/group";
 import fs from "fs";
 import path from "path";
@@ -264,7 +264,7 @@ export async function GET(
           width: watermarkDims.width,
           height: watermarkDims.height,
           opacity: 0.05, 
-          rotate: { type: 'degrees', angle: 0 }, // Set to 0 for straight, or 45 for diagonal
+          rotate: degrees(0), // Set to 0 for straight, or 45 for diagonal
         });
       }
     } catch (error) {
