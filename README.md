@@ -4,8 +4,7 @@ A web-based application for managing group tour expenses, tracking individual co
 
 ## Overview
 
-Tour Expenditure Manager simplifies group expense management by recording expenses, splitting shared costs, tracking individual payments, and calculating each member's financial responsibility. It supports equal splits, custom expense shares, individual items, a per-member A/C balance system, and PDF export of the final tour summary.
-
+Tour Expenditure Manager simplifies group expense management by recording expenses, splitting shared costs, tracking individual payments, and calculating each member's financial responsibility. It supports equal splits, custom expense shares, individual items, a per-member A/C balance system, password-protected group locking, and PDF export of the final tour summary.
 
 <div align="center">
   <table>
@@ -36,7 +35,6 @@ Tour Expenditure Manager simplifies group expense management by recording expens
   <sub><b>Summary Page & PDF Export</b></sub>
 </div>
 
-
 ## Key Features
 
 ### Group & Expense Management
@@ -47,29 +45,40 @@ Tour Expenditure Manager simplifies group expense management by recording expens
 - **Individual Items** — Assign particular items to selected members while distributing the remaining bill as a shared expense.
 - **Tour Completion** — Lock a completed tour to prevent further changes to its financial records.
 
-### A/C Balance System
-- **Per-Member A/C Wallet** — Each member can deposit money into their own A/C balance.
-- **Deposits** — Multiple deposits per member, each tracked as a separate transaction.
-- **Settle Debts from A/C** — Members can pay their share from their A/C wallet to one or more creditors.
+### A/C Balance System (Virtual Wallet)
+- **Per-Member A/C Wallet** — Each member can record deposits into their own A/C balance.
+- **Virtual Money Note:** The A/C balance acts as *virtual money* to calculate debts. Real cash/online transfers must still happen outside the app to settle final differences.
+- **Deposits** — Multiple deposits per member, each tracked as a separate transaction with delete functionality.
+- **Settle Debts from A/C** — Members can use their virtual A/C balance to settle debts with one or more creditors.
 - **Member Summary Page** — A per-member view with total paid, total owed, A/C balance, and net tour balance.
 - **Lazy-Loaded Sections** — A/C transactions, shared expenses, expenses paid, and deposits load on demand.
+
+### Group Locking (Security)
+- **Password-Protected Lock** — Lock any group with a 6-digit PIN to prevent accidental edits.
+- **Lock/Unlock Toggle** — Once a PIN is set, clicking "Lock" instantly locks the group. Clicking "Unlock" requires the PIN.
+- **Delete Lock** — Permanently remove the PIN (requires the correct PIN).
+- **Cascading Security** — Locking a group disables adding/editing expenses, members, and deposits. Deleting a locked group or finishing a tour requires the PIN.
 
 ### Reporting & Export
 - **Web Summary Preview** — A clean summary page for every finished tour.
 - **PDF Export** — Download a PDF summary with logo, watermark, dates, member breakdown, and full expense list.
-- **Finished Tour Cards** — Compact summary cards with dates, member count, total spend, and average share per person.
+- **Finished Tour Cards** — Compact summary cards with dates, member count, total spend, average share per person, and a lock status indicator.
 
-### UI
+### UI & Experience
 - **Modern Theme** — Brand-colored accent, Plus Jakarta Sans font, dark navbar, and consistent buttons.
+- **Loading Skeletons** — Custom skeleton screens for all pages (Home, Details, Summary, Member) for instant perceived load times.
+- **Smooth Animations** — Fade-in-up for cards and hover scaling for buttons.
 - **Responsive Layout** — Works on mobile and desktop.
 - **Timezone-Safe** — All dates render in Bangladesh Standard Time (Asia/Dhaka).
+- **In-App Guide** — A dedicated `/guide` page explaining how to use the app.
 
 ## Tech Stack
 
 - **Frontend:** Next.js 16 (App Router), React 19, TypeScript
 - **Styling:** Tailwind CSS v4
-- **Backend:** Next.js API Routes (Server Actions / Route Handlers)
+- **Backend:** Next.js API Routes
 - **Database:** MongoDB (Atlas)
+- **Authentication:** bcrypt (for 6-digit group lock PINs)
 - **PDF Generation:** pdf-lib
 - **Icons:** react-icons
 - **Deployment:** Vercel
@@ -87,23 +96,23 @@ git clone https://github.com/MHShohag911/tour-expenditure-manager.git
 cd tour-expenditure-manager
 npm install
 npm run dev
-```
 
-Create a `.env.local` file and add the MongoDB connection string required by the project.
+Create a .env.local file and add the MongoDB connection string required by the project.
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to access the application.
+Open http://localhost:3000 in your browser to access the application.
 
-## Roadmap / Future Improvements
+Roadmap / Future Improvements
+Mobile-first PDF layout for printing
 
-- Mobile-first PDF layout for printing
-- Per-expense receipt image attachments
-- Better offline support (PWA)
-- Multi-currency support
-- User accounts with authentication (currently no login — anyone with the URL can access any group)
+Per-expense receipt image attachments
 
-## License
+Better offline support (PWA)
 
+Multi-currency support
+
+User accounts with authentication (currently no login — anyone with the URL can access any group, unless locked)
+
+License
 Copyright (c) 2026 M H Shohag. All Rights Reserved.
 
 This project is a personal tool. No part of this codebase may be copied, modified, or distributed without explicit permission.
-
