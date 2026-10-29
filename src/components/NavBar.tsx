@@ -17,6 +17,7 @@ export function NavBar() {
             alt="TEM logo"
             width={48}
             height={48}
+            loading="eager"
             className="rounded-full object-cover mr-2"
           />
 

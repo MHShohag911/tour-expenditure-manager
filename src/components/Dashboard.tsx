@@ -7,12 +7,13 @@ import GroupForm from "@/components/GroupForm";
 import GroupList from "@/components/GroupList";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import Link from "next/link";
+import HomeSkeleton from "./Skeletons/HomeSkeleton";
 
 type MutateResponse = { message: string; group?: Group };
 
 export default function Dashboard() {
   const [groups, setGroups] = useState<Group[]>([]);
-  // ...
+  const [isLoading, setIsLoading] = useState(true);
   const axiosSecure = useAxiosSecure();
 
     useEffect(() => {
@@ -22,6 +23,8 @@ export default function Dashboard() {
         setGroups(response.data);
       } catch (error) {
         console.error("Failed to load groups:", error);
+      } finally{
+        setIsLoading(false);
       }
     };
 
@@ -276,6 +279,10 @@ export default function Dashboard() {
       Swal.fire("Error", "Could not finish the tour.", "error");
     }
   };
+
+    if (isLoading) {
+    return <HomeSkeleton />;
+  }
 
     return (
     <>
