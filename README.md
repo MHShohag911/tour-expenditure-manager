@@ -96,23 +96,23 @@ git clone https://github.com/MHShohag911/tour-expenditure-manager.git
 cd tour-expenditure-manager
 npm install
 npm run dev
+```
 
-Create a .env.local file and add the MongoDB connection string required by the project.
+Create a `.env.local` file and add the MongoDB connection string required by the project.
 
-Open http://localhost:3000 in your browser to access the application.
+Open [http://localhost:3000](http://localhost:3000) in your browser to access the application.
 
-Roadmap / Future Improvements
-Mobile-first PDF layout for printing
+## Roadmap / Future Improvements
 
-Per-expense receipt image attachments
+- Mobile-first PDF layout for printing
+- Per-expense receipt image attachments
+- Better offline support (PWA)
+- Multi-currency support
+- User accounts with authentication (currently no login — anyone with the URL can access any group)
 
-Better offline support (PWA)
+## License
 
-Multi-currency support
-
-User accounts with authentication (currently no login — anyone with the URL can access any group, unless locked)
-
-License
 Copyright (c) 2026 M H Shohag. All Rights Reserved.
 
 This project is a personal tool. No part of this codebase may be copied, modified, or distributed without explicit permission.
+
