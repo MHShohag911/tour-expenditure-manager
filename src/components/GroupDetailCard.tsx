@@ -7,6 +7,8 @@ import ExpenseList from "./ExpenseList";
 import { axiosSecure } from "../hooks/useAxiosSecure";
 import type { Group } from "@/types/group";
 import Link from "next/link";
+import { FaUnlockAlt } from "react-icons/fa";
+import { IoIosLock, IoIosUnlock } from "react-icons/io";
 
 type GroupDetailCardProps = {
   group: Group;
@@ -96,6 +98,156 @@ export default function GroupDetailCard({
     }
   };
 
+    const handleLock = async () => {
+    // If a password already exists, just lock it immediately
+    if (group.lockHash) {
+      try {
+        // We pass a dummy password because the backend only checks for
+        // a password if it's setting a NEW one. But to be safe with our API,
+        // we can add a new action "lock" to just flip the boolean without a password.
+        const res = await axiosSecure.post(`/teamDB/${group._id}/lock`, {
+          action: "lock", 
+        });
+        if (res.status === 200 && refreshGroups) await refreshGroups();
+        
+        Swal.fire({
+          title: "Locked!",
+          text: "The group is now locked.",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      } catch (error) {
+        console.error(error);
+        Swal.fire("Error", "Could not lock the group.", "error");
+      }
+      return;
+    }
+
+    // If no password exists, ask to set one
+    const { value: password } = await Swal.fire({
+      title: "Set Lock Password",
+      text: "Enter a 6-digit PIN to lock this group. You will need this to unlock it.",
+      input: "password",
+      inputAttributes: {
+        maxlength: "6",
+        autocapitalize: "off",
+        autocorrect: "off",
+        pattern: "[0-9]*",
+        inputmode: "numeric",
+      },
+      showCancelButton: true,
+      confirmButtonText: "Lock",
+      confirmButtonColor: "#1DD100",
+      inputValidator: (value) => {
+        if (!value || !/^\d{6}$/.test(value)) {
+          return "Password must be exactly 6 digits.";
+        }
+      },
+    });
+
+    if (!password) return;
+
+    try {
+      const res = await axiosSecure.post(`/teamDB/${group._id}/lock`, {
+        action: "set",
+        password,
+      });
+      if (res.status === 200 && refreshGroups) await refreshGroups();
+      Swal.fire({
+        title: "Locked!",
+        text: "The group is now locked.",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "Could not lock the group.", "error");
+    }
+  };
+
+  const handleUnlock = async () => {
+    const { value: password } = await Swal.fire({
+      title: "Unlock Group",
+      text: "Enter the 6-digit PIN to unlock.",
+      input: "password",
+      inputAttributes: {
+        maxlength: "6",
+        autocapitalize: "off",
+        autocorrect: "off",
+        pattern: "[0-9]*",
+        inputmode: "numeric",
+      },
+      showCancelButton: true,
+      confirmButtonText: "Unlock",
+    });
+
+    if (!password) return;
+
+    try {
+      const res = await axiosSecure.post(`/teamDB/${group._id}/lock`, {
+        action: "unlock",
+        password,
+      });
+      if (res.status === 200 && refreshGroups) await refreshGroups();
+      Swal.fire({
+        title: "Unlocked!",
+        text: "The group is now unlocked.",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } catch (error: any) {
+      Swal.fire(
+        "Error",
+        error.response?.data?.message || "Incorrect password.",
+        "error",
+      );
+    }
+  };
+
+  const handleDeleteLock = async () => {
+    const { value: password } = await Swal.fire({
+      title: "Delete Lock",
+      text: "Enter the 6-digit PIN to remove the lock permanently.",
+      input: "password",
+      inputAttributes: {
+        maxlength: "6",
+        autocapitalize: "off",
+        autocorrect: "off",
+        pattern: "[0-9]*",
+        inputmode: "numeric",
+      },
+      showCancelButton: true,
+      confirmButtonText: "Delete Lock",
+      confirmButtonColor: "#ef4444",
+    });
+
+    if (!password) return;
+
+    try {
+      const res = await axiosSecure.post(`/teamDB/${group._id}/lock`, {
+        action: "delete",
+        password,
+      });
+      if (res.status === 200 && refreshGroups) await refreshGroups();
+      Swal.fire({
+        title: "Lock Deleted!",
+        text: "The lock has been removed.",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } catch (error: any) {
+      Swal.fire(
+        "Error",
+        error.response?.data?.message || "Incorrect password.",
+        "error",
+      );
+    }
+  };
+
   return (
     <div className="border-t-2 border-dashed border-[#1DD100] mt-8">
       <div className="my-8 rounded-xl border border-gray-200 bg-white py-2 shadow-md md:py-8 animate-fade-in-up">
@@ -103,12 +255,12 @@ export default function GroupDetailCard({
           <div className="flex flex-col justify-between space-y-2 md:flex-row md:space-y-0">
             <h2 className="text-3xl font-bold text-black">{group.name}</h2>
 
-            <div className="flex justify-between gap-2">
+            <div className="flex flex-wrap justify-between gap-2">
               {!group.isDisabled && handleSetGroup && (
                 <button
                   type="button"
                   onClick={() => handleSetGroup(group._id)}
-                  className="rounded-md bg-[#1DD100] px-4 py-2 text-white transition hover:bg-[#1DD100]"
+                  className="rounded-md bg-[#1DD100] px-4 py-1 text-sm font-semibold text-white transition hover:bg-[#19B300]"
                 >
                   Set Group
                 </button>
@@ -118,7 +270,7 @@ export default function GroupDetailCard({
                 <button
                   type="button"
                   onClick={() => handleFinishTour(group._id)}
-                  className="rounded-md text-[#1DD100] border px-4 py-2 text-sm font-extrabold transition hover:bg-[#1DD100] hover:text-white"
+                  className="rounded-md bg-white text-[#1DD100] border border-[#1DD100] px-4 py-1 text-sm font-medium transition hover:bg-[#1DD100] hover:text-white"
                 >
                   Finish Tour
                 </button>
@@ -128,15 +280,44 @@ export default function GroupDetailCard({
                 <button
                   type="button"
                   onClick={() => onDeleteGroup(group._id)}
-                  className="rounded-md text-red-600 px-4 py-2 text-sm font-medium border transition hover:bg-red-600 hover:text-white"
+                  className="rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
                 >
                   Delete Group
+                </button>
+              )}
+
+              {/* --- NEW LOCK BUTTONS --- */}
+              {group.isLocked ? (
+                <button
+                  type="button"
+                  onClick={handleUnlock}
+                  className="rounded-full text-black p-2 text-sm font-medium transition hover:bg-[#111827] flex items-center border border-[#1DD100] bg-[#1DD100]/10"
+                >
+                  <IoIosLock className="text-[#1DD100] text-2xl" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleLock}
+                  className="rounded-full text-black p-2 text-sm font-medium transition hover:bg-[#111827] flex items-center border border-[#1DD100] bg-[#1DD100]/10"
+                >
+                  <IoIosUnlock className="text-[#1DD100] text-2xl" />
+                </button>
+              )}
+
+              {!group.isLocked && group.lockHash && (
+                <button
+                  type="button"
+                  onClick={handleDeleteLock}
+                  className="rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                >
+                  Delete Lock
                 </button>
               )}
             </div>
           </div>
 
-          {!group.isDisabled && onAddMember && (
+          {!group.isDisabled && !group.isLocked && onAddMember && (
             <div className="my-5 space-y-2">
               <input
                 type="text"
@@ -199,7 +380,7 @@ export default function GroupDetailCard({
                         </Link>
                       </div>
 
-                      {!group.isDisabled && (
+                      {!group.isDisabled && !group.isLocked && (
                         <button
                           type="button"
                           onClick={() => handleDeleteMember(index)}
@@ -470,7 +651,7 @@ export default function GroupDetailCard({
           </div>
 
           <div className="space-y-5 mt-6">
-            {!group.isFinished && onAddExpense && (
+            {!group.isFinished && !group.isLocked && onAddExpense && (
               <ExpenseForm
                 groups={[group]}
                 groupId={group._id}

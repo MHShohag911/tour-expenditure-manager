@@ -10,6 +10,7 @@ const COLLECTION_NAME = "TeamDB";
 type GroupDocument = {
   name?: string;
   isDisabled?: boolean;
+  isLocked: boolean;
 };
 
 type RouteContext = {
@@ -64,6 +65,14 @@ export async function PATCH(
       );
     }
 
+    // lock feature
+    if (existing.isLocked === true) {
+      return NextResponse.json(
+        { message: "Group is locked. Unlock it to add members." },
+        { status: 403 },
+      );
+    }
+
     const trimmedName = member.name.trim();
     let added = false;
     let updatedGroup: Group | null = null;
@@ -72,6 +81,11 @@ export async function PATCH(
       updatedGroup = await mutateGroup(id, (draft: Group) => {
         if (draft.isDisabled === true) {
           throw new Error("DISABLED");
+        }
+
+        // lock feature
+        if (draft.isLocked === true) {
+          throw new Error("LOCKED");
         }
 
         const members = draft.members ?? [];
@@ -103,6 +117,12 @@ export async function PATCH(
         return NextResponse.json(
           { message: "Cannot add members after the group is set." },
           { status: 409 },
+        );
+      }
+      if (message === "LOCKED") {
+        return NextResponse.json(
+          { message: "Group is locked. Unlock it to add members." },
+          { status: 403 },
         );
       }
       if (message === "DUPLICATE") {

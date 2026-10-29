@@ -131,6 +131,13 @@ export async function DELETE(
 
     try {
       updatedGroup = await mutateGroup(id, (draft: Group) => {
+        if (draft.isFinished === true) {
+          throw new Error("FINISHED");
+        }
+        // Lock group feature
+        if (draft.isLocked === true) {
+          throw new Error("LOCKED");
+        }
         draft.expenses = normalized;
         draft.expenses = normalized.filter(
           (expense) => expense.id !== expenseId
@@ -142,6 +149,12 @@ export async function DELETE(
         return NextResponse.json(
           { message: "Cannot delete expense from a finished tour." },
           { status: 409 }
+        );
+      }
+      if (message === "LOCKED") {
+        return NextResponse.json(
+          { message: "Group is locked. Unlock it to delete expenses." },
+          { status: 403 }
         );
       }
       throw error;

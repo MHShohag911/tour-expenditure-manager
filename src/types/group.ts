@@ -57,6 +57,8 @@ export type Group = {
   name: string;
   isDisabled: boolean;
   isFinished?: boolean;
+  isLocked?: boolean;     // Add this
+  lockHash?: string;      // Add this
   members: Member[];
   expenses: Expense[];
   deposits?: Deposit[];

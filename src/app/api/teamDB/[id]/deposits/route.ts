@@ -78,6 +78,14 @@ export async function POST(
       );
     }
 
+    // Lock group feature
+    if (group.isLocked === true) {
+      return Response.json(
+        { message: "Group is locked. Unlock it to add deposits." },
+        { status: 403 },
+      );
+    }
+
     const depositId = randomUUID();
     const depositTime = new Date().toISOString();
     let savedDeposit: Deposit | null = null;
@@ -171,6 +179,14 @@ export async function DELETE(
 
     try {
       updatedGroup = await mutateGroup(id, (draft: Group) => {
+        // Lock group feature
+        if (draft.isFinished === true) {
+          throw new Error("FINISHED");
+        }
+        if (draft.isLocked === true) {
+          throw new Error("LOCKED");
+        }
+
         const deposits = draft.deposits ?? [];
         const target = deposits.find((d) => d.id === depositId);
 
@@ -185,6 +201,18 @@ export async function DELETE(
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
+      if (message === "FINISHED") {
+        return NextResponse.json(
+          { message: "Cannot delete a deposit from a finished tour." },
+          { status: 409 },
+        );
+      }
+      if (message === "LOCKED") {
+        return NextResponse.json(
+          { message: "Group is locked. Unlock it to delete deposits." },
+          { status: 403 },
+        );
+      }
       if (message === "DEPOSIT_NOT_FOUND") {
         return NextResponse.json(
           { message: "Deposit not found." },

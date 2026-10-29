@@ -174,6 +174,14 @@ export async function POST(
       );
     }
 
+    // Lock Feature
+        if (group.isLocked === true) {
+      return Response.json(
+        { message: "Group is locked. Unlock it to add expenses." },
+        { status: 403 },
+      );
+    }
+
     const expenseId = randomUUID();
     const transactionTime = new Date().toISOString();
 
