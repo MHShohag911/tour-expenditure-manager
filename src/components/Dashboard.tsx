@@ -250,7 +250,7 @@ export default function Dashboard() {
       text: "No more expenses or deposits can be added after this.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#111827",
+      confirmButtonColor: "#1DD100",
       cancelButtonColor: "#d33",
       confirmButtonText: "Yes, finish it!",
     });
