@@ -8,6 +8,7 @@ import GroupList from "@/components/GroupList";
 import { NavBar } from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
+import Link from "next/link";
 
 type MutateResponse = { message: string; group?: Group };
 
@@ -268,9 +269,20 @@ export default function Dashboard({
       <NavBar />
 
       <main className="min-h-screen flex-1">
-        <p className="my-10 text-center text-3xl font-bold text-[#111827]">
-          Tour Expenditure Manager
-        </p>
+                <div className="my-10 text-center">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Tour Expenditure Manager
+          </h1>
+          <p className="mt-2 text-gray-500">
+            Manage tour groups, expenses, and shared costs effortlessly.
+          </p>
+          <Link
+            href="/guide"
+            className="mt-4 inline-block text-sm font-medium text-[#1DD100] hover:underline"
+          >
+            Need help? Read the guide →
+          </Link>
+        </div>
 
         <GroupForm onAddGroup={addGroup} />
 
