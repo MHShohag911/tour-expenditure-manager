@@ -41,27 +41,38 @@ export async function GET(
 
         let y = height - 80;
 
+        
+        // Colors
+        const brandGreen = rgb(0.11, 0.82, 0); // #1DD100
+        const red600 = rgb(0.86, 0.15, 0.15);   // #dc2626
+        const gray500 = rgb(0.42, 0.45, 0.50);  // #6b7280
+        const lightGreen = rgb(0.11, 0.82, 0);  // For dashed lines
+
         // Load the logo
         try {
             const logoPath = path.join(process.cwd(), "public", "logo.png");
             const logoBytes = fs.readFileSync(logoPath);
             const logoImage = await pdfDoc.embedPng(logoBytes);
 
+            // Draw the logo image
             page.drawImage(logoImage, {
-                x: 500, // Top right
-                y: 730,
+                x: 500,
+                y: 725, // Moved up slightly to make room for the text
                 width: 40,
                 height: 40,
+            });
+
+            // Draw the "TEM" text below the logo
+            page.drawText("TEM", {
+                x: 506, // Centered horizontally under the 40px wide logo
+                y: 710, // Placed right below the logo
+                size: 12,
+                font: boldFont,
+                color: brandGreen,
             });
         } catch (error) {
             console.log("Logo not found, skipping...");
         }
-
-        // Colors
-        const brandGreen = rgb(0.11, 0.82, 0); // #1DD100
-        const red600 = rgb(0.86, 0.15, 0.15);   // #dc2626
-        const gray500 = rgb(0.42, 0.45, 0.50);  // #6b7280
-        const lightGreen = rgb(0.11, 0.82, 0);  // For dashed lines
 
         // Helper to draw text and move the cursor down
         const drawText = (text: string, options?: { bold?: boolean; size?: number; color?: ReturnType<typeof rgb>; indent?: number }) => {
@@ -240,36 +251,36 @@ export async function GET(
             y -= 2;
         });
 
-            // 7.5 Add Watermark to all pages
-    try {
-      const logoPath = path.join(process.cwd(), "public", "logo.png");
-      const logoBytes = fs.readFileSync(logoPath);
-      const logoImage = await pdfDoc.embedPng(logoBytes);
+        // 7.5 Add Watermark to all pages
+        try {
+            const logoPath = path.join(process.cwd(), "public", "logo.png");
+            const logoBytes = fs.readFileSync(logoPath);
+            const logoImage = await pdfDoc.embedPng(logoBytes);
 
-      // Scale it down a bit so it fits nicely
-      const watermarkDims = logoImage.scale(0.4);
-      
-      const pages = pdfDoc.getPages();
-      for (const p of pages) {
-        const { width: pw, height: ph } = p.getSize();
-        
-        // Because it rotates around the bottom-left corner, we shift it 
-        // right and down by half its width/height to center it.
-        const x = pw / 2 - watermarkDims.width / 2;
-        const y = ph / 2 - watermarkDims.height / 2;
+            // Scale it down a bit so it fits nicely
+            const watermarkDims = logoImage.scale(0.4);
 
-        p.drawImage(logoImage, {
-          x: x,
-          y: y,
-          width: watermarkDims.width,
-          height: watermarkDims.height,
-          opacity: 0.05, 
-          rotate: degrees(0), // Set to 0 for straight, or 45 for diagonal
-        });
-      }
-    } catch (error) {
-      console.log("Watermark logo not found, skipping...");
-    }
+            const pages = pdfDoc.getPages();
+            for (const p of pages) {
+                const { width: pw, height: ph } = p.getSize();
+
+                // Because it rotates around the bottom-left corner, we shift it 
+                // right and down by half its width/height to center it.
+                const x = pw / 2 - watermarkDims.width / 2;
+                const y = ph / 2 - watermarkDims.height / 2;
+
+                p.drawImage(logoImage, {
+                    x: x,
+                    y: y,
+                    width: watermarkDims.width,
+                    height: watermarkDims.height,
+                    opacity: 0.05,
+                    rotate: degrees(0), // Set to 0 for straight, or 45 for diagonal
+                });
+            }
+        } catch (error) {
+            console.log("Watermark logo not found, skipping...");
+        }
 
         // 8. Save and return
         const pdfBytes = await pdfDoc.save();

@@ -90,14 +90,17 @@ export default async function SummaryPage({ params }: PageProps) {
       {/* Main Report Card */}
       <div className="md:relative rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
         {/* Logo in the top right corner */}
-        <div className="mb-4 flex justify-center md:absolute md:right-8 md:top-8">
-          <Image
+        <div className="mb-4 flex justify-center items-center md:absolute md:right-8 md:top-8">
+          <div className="">
+            <Image
             src="https://i.ibb.co.com/HLJN8qFp/logo.png" // Or use "/logo.png" if it's in the public folder
             alt="TEM Logo"
             width={50}
             height={50}
             className="object-contain"
           />
+          <p className="text-center text-x font-bold text-[#1DD100]">TEM</p>
+          </div>
         </div>
 
         {/* Centered Header */}
