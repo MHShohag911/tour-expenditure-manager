@@ -65,4 +65,5 @@ export type Group = {
   outstandingDebts?: OutstandingDebt[];
   // settlements?: Settlement[];
   nextSequence?: number;
+  refreshGroups: () => Promise<void>;
 };

@@ -1,24 +1,32 @@
 "use client";
 
 import type { Group } from "@/types/group";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import GroupForm from "@/components/GroupForm";
 import GroupList from "@/components/GroupList";
-import { NavBar } from "@/components/NavBar";
-import Footer from "@/components/Footer";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
 import Link from "next/link";
 
 type MutateResponse = { message: string; group?: Group };
 
-export default function Dashboard({
-  initialGroups,
-}: {
-  initialGroups: Group[];
-}) {
-  const [groups, setGroups] = useState<Group[]>(initialGroups);
+export default function Dashboard() {
+  const [groups, setGroups] = useState<Group[]>([]);
+  // ...
   const axiosSecure = useAxiosSecure();
+
+    useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const response = await axiosSecure.get<Group[]>("/teamDB");
+        setGroups(response.data);
+      } catch (error) {
+        console.error("Failed to load groups:", error);
+      }
+    };
+
+    fetchGroups();
+  }, [axiosSecure]);
 
   const upperCase = useCallback((name: string) => {
     return name.charAt(0).toUpperCase() + name.slice(1);
@@ -35,6 +43,11 @@ export default function Dashboard({
       previous.map((g) => (g._id === group._id ? group : g)),
     );
   }, []);
+
+    const refreshGroups = async () => {
+    const response = await axiosSecure.get<Group[]>("/teamDB");
+    setGroups(response.data);
+  };
 
   const addGroup = async (groupName: string) => {
     const name = upperCase(groupName.trim());
@@ -203,7 +216,7 @@ export default function Dashboard({
     }
   };
 
-    const handleFinishTour = async (groupId: string) => {
+  const handleFinishTour = async (groupId: string) => {
     const group = currGroup(groupId);
     if (!group) return;
 
@@ -227,7 +240,7 @@ export default function Dashboard({
           if (!val || val.length !== 6) return "Please enter the 6-digit PIN.";
         },
       });
-      
+
       if (!value) return;
       password = value;
     }
@@ -247,7 +260,7 @@ export default function Dashboard({
     try {
       const response = await axiosSecure.patch<MutateResponse>(
         `/teamDB/${groupId}/finishTour`,
-        { password } // Send the password in the body
+        { password }, // Send the password in the body
       );
       applyGroupUpdate(response.data.group);
 
@@ -264,40 +277,35 @@ export default function Dashboard({
     }
   };
 
-  return (
-    <div className="container mx-auto flex min-h-screen flex-col px-4">
-      <NavBar />
+    return (
+    <>
+      <div className="my-10 text-center">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Tour Expenditure Manager
+        </h1>
+        <p className="mt-2 text-gray-500">
+          Manage tour groups, expenses, and shared costs effortlessly.
+        </p>
+        <Link
+          href="/guide"
+          className="mt-4 inline-block text-sm font-medium text-[#1DD100] hover:underline"
+        >
+          Need help? Read the guide →
+        </Link>
+      </div>
 
-      <main className="min-h-screen flex-1">
-                <div className="my-10 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Tour Expenditure Manager
-          </h1>
-          <p className="mt-2 text-gray-500">
-            Manage tour groups, expenses, and shared costs effortlessly.
-          </p>
-          <Link
-            href="/guide"
-            className="mt-4 inline-block text-sm font-medium text-[#1DD100] hover:underline"
-          >
-            Need help? Read the guide →
-          </Link>
-        </div>
+      <GroupForm onAddGroup={addGroup} />
 
-        <GroupForm onAddGroup={addGroup} />
-
-        <GroupList
-          groups={groups}
-          setGroups={setGroups}
-          onAddMember={addMember}
-          onAddExpense={addExpense}
-          handleSetGroup={handleSetGroup}
-          handleFinishTour={handleFinishTour}
-          onAddDeposit={addDeposit}
-        />
-      </main>
-
-      <Footer />
-    </div>
+      <GroupList
+        groups={groups}
+        setGroups={setGroups}
+        onAddMember={addMember}
+        onAddExpense={addExpense}
+        handleSetGroup={handleSetGroup}
+        handleFinishTour={handleFinishTour}
+        onAddDeposit={addDeposit}
+        refreshGroups={refreshGroups}
+      />
+    </>
   );
 }

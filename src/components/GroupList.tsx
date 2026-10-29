@@ -28,21 +28,18 @@ type GroupListProps = {
     amount: number,
     description: string,
   ) => void;
+  refreshGroups: () => Promise<void>;
 };
 
 const GroupList = ({
   groups,
-  setGroups,
   onAddMember,
   onAddExpense,
   handleSetGroup,
   handleFinishTour,
   onAddDeposit,
+  refreshGroups
 }: GroupListProps) => {
-  const refreshGroups = async () => {
-    const response = await axiosSecure.get<Group[]>("/teamDB");
-    setGroups(response.data);
-  };
 
   const handleDeleteGroup = async (groupId: string) => {
     const group = groups.find((item) => item._id === groupId);

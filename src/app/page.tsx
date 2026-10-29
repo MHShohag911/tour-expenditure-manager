@@ -1,27 +1,16 @@
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
-  import clientPromise from "@/lib/mongodb";
+import { NavBar } from "@/components/NavBar";
+import Footer from "@/components/Footer";
 import Dashboard from "@/components/Dashboard";
-import type { Group } from "@/types/group";
 
-const DATABASE_NAME = "Tour-Expenditure-Management-Test";
-const COLLECTION_NAME = "TeamDB";
-
-export default async function Page() {
-  const client = await clientPromise;
-  const groups = await client
-    .db(DATABASE_NAME)
-    .collection<Group>(COLLECTION_NAME)
-    .find({})
-    .sort({ _id: -1 })
-    .toArray();
-
-  // Convert ObjectId to string for the client component
-  const serializedGroups = groups.map((g) => ({
-    ...g,
-    _id: g._id.toString(),
-  }));
-
-  return <Dashboard initialGroups={serializedGroups} />;
+export default function Page() {
+  return (
+    <div className="container mx-auto flex min-h-screen flex-col px-4">
+      <NavBar />
+      <main className="min-h-screen flex-1">
+        <Dashboard />
+      </main>
+      <Footer />
+    </div>
+  );
 }
