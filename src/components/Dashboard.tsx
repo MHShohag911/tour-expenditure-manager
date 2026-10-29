@@ -202,21 +202,42 @@ export default function Dashboard({
     }
   };
 
-  const handleFinishTour = async (groupId: string) => {
+    const handleFinishTour = async (groupId: string) => {
     const group = currGroup(groupId);
-
     if (!group) return;
+
+    let password = "";
+
+    // If the group has a password set, ask for it
+    if (group.lockHash) {
+      const { value } = await Swal.fire({
+        title: "Password Required",
+        text: "This group is password protected. Enter the 6-digit PIN to finish the tour.",
+        input: "password",
+        inputAttributes: {
+          maxlength: "6",
+          pattern: "[0-9]*",
+          inputmode: "numeric",
+        },
+        showCancelButton: true,
+        confirmButtonText: "Verify",
+        confirmButtonColor: "#1DD100",
+        inputValidator: (val) => {
+          if (!val || val.length !== 6) return "Please enter the 6-digit PIN.";
+        },
+      });
+      
+      if (!value) return;
+      password = value;
+    }
 
     const result = await Swal.fire({
       title: "Finish tour?",
       text: "No more expenses or deposits can be added after this.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#1DD100",
-      cancelButtonColor: "#ef4444",
-      customClass: {
-        confirmButton: "text-black font-semibold",
-      },
+      confirmButtonColor: "#111827",
+      cancelButtonColor: "#d33",
       confirmButtonText: "Yes, finish it!",
     });
 
@@ -225,6 +246,7 @@ export default function Dashboard({
     try {
       const response = await axiosSecure.patch<MutateResponse>(
         `/teamDB/${groupId}/finishTour`,
+        { password } // Send the password in the body
       );
       applyGroupUpdate(response.data.group);
 
@@ -237,7 +259,7 @@ export default function Dashboard({
       });
     } catch (error) {
       console.error("Failed to finish tour:", error);
-      await Swal.fire("Error", "Could not finish the tour.", "error");
+      Swal.fire("Error", "Could not finish the tour.", "error");
     }
   };
 

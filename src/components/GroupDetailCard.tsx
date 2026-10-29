@@ -6,9 +6,9 @@ import ExpenseForm from "./ExpenseForm";
 import ExpenseList from "./ExpenseList";
 import { axiosSecure } from "../hooks/useAxiosSecure";
 import type { Group } from "@/types/group";
-import Link from "next/link";
-import { FaUnlockAlt } from "react-icons/fa";
 import { IoIosLock, IoIosUnlock } from "react-icons/io";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type GroupDetailCardProps = {
   group: Group;
@@ -48,6 +48,7 @@ export default function GroupDetailCard({
 }: GroupDetailCardProps) {
   const [memberNames, setMemberNames] = useState<Record<string, string>>({});
   const [openDepositFor, setOpenDepositFor] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleAddMember = () => {
     if (!onAddMember) return;
@@ -98,7 +99,7 @@ export default function GroupDetailCard({
     }
   };
 
-    const handleLock = async () => {
+  const handleLock = async () => {
     // If a password already exists, just lock it immediately
     if (group.lockHash) {
       try {
@@ -106,10 +107,13 @@ export default function GroupDetailCard({
         // a password if it's setting a NEW one. But to be safe with our API,
         // we can add a new action "lock" to just flip the boolean without a password.
         const res = await axiosSecure.post(`/teamDB/${group._id}/lock`, {
-          action: "lock", 
+          action: "lock",
         });
-        if (res.status === 200 && refreshGroups) await refreshGroups();
-        
+        if (res.status === 200) {
+          router.refresh();
+          if (refreshGroups) await refreshGroups();
+        }
+
         Swal.fire({
           title: "Locked!",
           text: "The group is now locked.",
@@ -181,6 +185,7 @@ export default function GroupDetailCard({
       },
       showCancelButton: true,
       confirmButtonText: "Unlock",
+      confirmButtonColor: "#1DD100",
     });
 
     if (!password) return;
@@ -190,7 +195,10 @@ export default function GroupDetailCard({
         action: "unlock",
         password,
       });
-      if (res.status === 200 && refreshGroups) await refreshGroups();
+      if (res.status === 200) {
+        router.refresh();
+        if (refreshGroups) await refreshGroups();
+      }
       Swal.fire({
         title: "Unlocked!",
         text: "The group is now unlocked.",
@@ -231,7 +239,10 @@ export default function GroupDetailCard({
         action: "delete",
         password,
       });
-      if (res.status === 200 && refreshGroups) await refreshGroups();
+      if (res.status === 200) {
+        router.refresh();
+        if (refreshGroups) await refreshGroups();
+      }
       Swal.fire({
         title: "Lock Deleted!",
         text: "The lock has been removed.",
@@ -255,65 +266,61 @@ export default function GroupDetailCard({
           <div className="flex flex-col justify-between space-y-2 md:flex-row md:space-y-0">
             <h2 className="text-3xl font-bold text-black">{group.name}</h2>
 
-            <div className="flex flex-wrap justify-between gap-2">
-              {!group.isDisabled && handleSetGroup && (
-                <button
-                  type="button"
-                  onClick={() => handleSetGroup(group._id)}
-                  className="rounded-md bg-[#1DD100] px-4 py-1 text-sm font-semibold text-white transition hover:bg-[#19B300]"
-                >
-                  Set Group
-                </button>
-              )}
+            <div className="flex justify-between gap-2">
+              <div className="flex flex-col md:flex-row gap-2">
+                {group.isDisabled && !group.isFinished && handleFinishTour && (
+                  <button
+                    type="button"
+                    onClick={() => handleFinishTour(group._id)}
+                    className="rounded-md bg-white text-[#1DD100] border border-[#1DD100] px-4 py-2 text-sm font-medium transition hover:bg-[#1DD100] hover:text-white"
+                  >
+                    Finish Tour
+                  </button>
+                )}
 
-              {group.isDisabled && !group.isFinished && handleFinishTour && (
-                <button
-                  type="button"
-                  onClick={() => handleFinishTour(group._id)}
-                  className="rounded-md bg-white text-[#1DD100] border border-[#1DD100] px-4 py-1 text-sm font-medium transition hover:bg-[#1DD100] hover:text-white"
-                >
-                  Finish Tour
-                </button>
-              )}
+                {onDeleteGroup && (
+                  <button
+                    type="button"
+                    onClick={() => onDeleteGroup(group._id)}
+                    className="rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                  >
+                    Delete Group
+                  </button>
+                )}
+              </div>
 
-              {onDeleteGroup && (
-                <button
-                  type="button"
-                  onClick={() => onDeleteGroup(group._id)}
-                  className="rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                >
-                  Delete Group
-                </button>
-              )}
+              <div className="flex flex-col md:flex-row gap-2">
+                {/* --- NEW LOCK BUTTONS --- */}
+                <div className="flex justify-end">
+                  {group.isLocked ? (
+                    <button
+                      type="button"
+                      onClick={handleUnlock}
+                      className="rounded-full text-black p-2 text-sm font-medium transition hover:bg-[#111827] flex items-center border border-[#1DD100] bg-[#1DD100]/10"
+                    >
+                      <IoIosLock className="text-[#1DD100] text-2xl" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleLock}
+                      className="rounded-full text-black p-2 text-sm font-medium transition hover:bg-[#111827] flex items-center border border-[#1DD100] bg-[#1DD100]/10"
+                    >
+                      <IoIosUnlock className="text-[#1DD100] text-2xl" />
+                    </button>
+                  )}
+                </div>
 
-              {/* --- NEW LOCK BUTTONS --- */}
-              {group.isLocked ? (
-                <button
-                  type="button"
-                  onClick={handleUnlock}
-                  className="rounded-full text-black p-2 text-sm font-medium transition hover:bg-[#111827] flex items-center border border-[#1DD100] bg-[#1DD100]/10"
-                >
-                  <IoIosLock className="text-[#1DD100] text-2xl" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleLock}
-                  className="rounded-full text-black p-2 text-sm font-medium transition hover:bg-[#111827] flex items-center border border-[#1DD100] bg-[#1DD100]/10"
-                >
-                  <IoIosUnlock className="text-[#1DD100] text-2xl" />
-                </button>
-              )}
-
-              {!group.isLocked && group.lockHash && (
-                <button
-                  type="button"
-                  onClick={handleDeleteLock}
-                  className="rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                >
-                  Delete Lock
-                </button>
-              )}
+                {!group.isLocked && group.lockHash && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteLock}
+                    className="rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                  >
+                    Delete Lock
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -337,13 +344,24 @@ export default function GroupDetailCard({
                 }}
                 className="w-full rounded-md border border-gray-300 px-3 py-3 text-black outline-none focus:border-[#090040] focus:ring-1 focus:ring-[#090040]"
               />
-              <button
-                type="button"
-                onClick={handleAddMember}
-                className="rounded-md bg-[#1DD100] px-3 py-2 font-semibold  transition hover:bg-[#19B300] text-white"
-              >
-                Add Member
-              </button>
+              <div className="flex justify-between">
+                <button
+                  type="button"
+                  onClick={handleAddMember}
+                  className="rounded-md bg-[#1DD100] px-3 py-2 font-semibold  transition hover:bg-[#19B300] text-white"
+                >
+                  Add Member
+                </button>
+                {!group.isDisabled && handleSetGroup && (
+                  <button
+                    type="button"
+                    onClick={() => handleSetGroup(group._id)}
+                    className="rounded-md bg-[#1DD100] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#19B300]"
+                  >
+                    Set Group
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

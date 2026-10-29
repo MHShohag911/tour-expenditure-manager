@@ -63,8 +63,34 @@ const GroupList = ({
 
     if (!result.isConfirmed) return;
 
+    let password = "";
+
+    // If the group has a lock, ask for the password
+    if (group.lockHash) {
+      const { value } = await Swal.fire({
+        title: "Enter Password",
+        text: "This group is locked. Enter the 6-digit PIN to delete it.",
+        input: "password",
+        inputAttributes: {
+          maxlength: "6",
+          pattern: "[0-9]*",
+          inputmode: "numeric",
+        },
+        showCancelButton: true,
+        confirmButtonText: "Delete",
+        confirmButtonColor: "#d33",
+        inputValidator: (val) => {
+          if (!val || val.length !== 6) return "Please enter the 6-digit PIN.";
+        },
+      });
+      if (!value) return;
+      password = value;
+    }
+
     try {
-      await axiosSecure.delete(`/teamDB/${groupId}`);
+      await axiosSecure.delete(`/teamDB/${groupId}`, {
+        params: { password },
+      });
       await refreshGroups();
       Swal.fire({
         title: "Deleted!",
@@ -75,7 +101,25 @@ const GroupList = ({
       });
     } catch (error) {
       console.error("Error deleting group:", error);
-      Swal.fire("Error", "Unable to delete the group.", "error");
+
+      let errorMessage = "Unable to delete the group.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error
+      ) {
+        // Safely check for Axios error response
+        const axiosError = error as {
+          response?: { data?: { message?: string } };
+        };
+        if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        }
+      }
+
+      await Swal.fire("Error", errorMessage, "error");
     }
   };
 
@@ -154,12 +198,12 @@ const GroupList = ({
                         {group.name}
                       </h2>
                       <button
-                        type="button"
-                        onClick={() => handleDeleteGroup(group._id)}
-                        className="inline-block rounded-full border border-red-200 bg-white p-3 text-sm font-medium text-red-600 h-full transition hover:bg-red-50 my-2  ml-2"
-                      >
-                        <FaTrash></FaTrash>
-                      </button>
+                          type="button"
+                          onClick={() => handleDeleteGroup(group._id)}
+                          className="inline-block rounded-full border border-red-200 bg-white p-3 text-sm font-medium text-red-600 h-full transition hover:bg-red-50 my-2 ml-2"
+                        >
+                          <FaTrash></FaTrash>
+                        </button>
                     </div>
                     <p className="mt-1 text-sm text-gray-500">{dateRange}</p>
 
