@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function GuidePage() {
   return (
     <div className="container mx-auto max-w-3xl px-4 py-12 text-justify">
-      <Link href="/" className="text-sm font-medium text-[#1DD100] hover:text-gray-900">
+      <Link href="/" className="text-sm font-bold text-[#1DD100] hover:text-gray-900">
         ← Back to Home
       </Link>
 
