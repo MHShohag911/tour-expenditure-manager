@@ -165,7 +165,7 @@ export async function GET(
         y -= 15;
         page.drawText(`Total Expenses: ${expenses.length}`, { x: totalsX, y, size: 10, font });
         y -= 15;
-        page.drawText(`Total Spend: ৳ ${totalSpend.toFixed(2)}`, { x: totalsX, y, size: 10, font: boldFont });
+        page.drawText(`Total Spend:  ${totalSpend.toFixed(2)}`, { x: totalsX, y, size: 10, font: boldFont });
         y -= 15;
 
         // Draw Middle Dashed Line
@@ -190,10 +190,10 @@ export async function GET(
 
             page.drawText(member.name, { x, y, size: 12, font: boldFont, color: rgb(0, 0, 0) });
 
-            page.drawText("Paid: ৳", { x, y: y - 18, size: 9, font, color: gray500 });
+            page.drawText("Paid: ", { x, y: y - 18, size: 9, font, color: gray500 });
             page.drawText(`${member.totalPaid.toFixed(2)}`, { x: x + 25, y: y - 18, size: 9, font: boldFont, color: brandGreen });
 
-            page.drawText("Share: ৳", { x, y: y - 34, size: 9, font, color: gray500 });
+            page.drawText("Share: ", { x, y: y - 34, size: 9, font, color: gray500 });
             page.drawText(`${member.totalOwed.toFixed(2)}`, { x: x + 35, y: y - 34, size: 9, font: boldFont, color: red600 });
 
             const net = member.totalPaid - member.totalOwed;
@@ -205,11 +205,11 @@ export async function GET(
 
             if (!isSettled) {
                 if (isCreditor) {
-                    statusLabel = "Gets Back ৳";
+                    statusLabel = "Gets Back ";
                     statusAmount = Math.abs(net).toFixed(2);
                     amountColor = brandGreen;
                 } else {
-                    statusLabel = "Pay ৳";
+                    statusLabel = "Pay ";
                     statusAmount = Math.abs(net).toFixed(2);
                     amountColor = red600;
                 }
@@ -246,7 +246,7 @@ export async function GET(
                 ? new Date(expense.createdAt).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })
                 : expense.time;
 
-            drawText(`${index + 1}. ${expense.description} - ৳ ${expense.amount.toFixed(2)} (Paid by ${expense.payerName})`, { size: 10, indent: 40 });
+            drawText(`${index + 1}. ${expense.description} -  ${expense.amount.toFixed(2)} (Paid by ${expense.payerName})`, { size: 10, indent: 40 });
             drawText(`${eDate}`, { size: 8, indent: 48, color: gray500 });
             y -= 2;
         });
