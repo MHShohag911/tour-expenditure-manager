@@ -80,12 +80,14 @@ const ExpenseList = ({
             key={expense.id ?? `${expense.description}-${expense.time}`}
           >
             <div className="flex flex-col mt-3">
-              <div>
-                <span className="font-bold">{index + 1}. </span>
-                {expense.description} - ৳{expense.amount} (Paid by{" "}
-                {expense.payerName})
+              <div className="flex">
+                <p className="font-bold">{index + 1}. </p>
+                <div className="ml-1">
+                  <p>{expense.description} - ৳{expense.amount} (Paid by{" "}
+                {expense.payerName})</p>
+              <p className="text-xs text-gray-600">{expense.time}</p>
+                </div>
               </div>
-              <span className="text-xs ml-4 text-gray-600">{expense.time}</span>
             </div>
             {!isFinished && (
               <button
