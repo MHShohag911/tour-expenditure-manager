@@ -99,7 +99,7 @@ export default async function SummaryPage({ params }: PageProps) {
             height={50}
             className="object-contain"
           />
-          <p className="text-center text-x font-bold text-[#1DD100]">TEM</p>
+          <p className="text-center text-x font-bold text-gray-900" >TEM</p>
           </div>
         </div>
 
@@ -136,7 +136,7 @@ export default async function SummaryPage({ params }: PageProps) {
           <div>
             <p className="text-gray-600 font-bold">
               Total Spend:{" "}
-              <span className="text-black">BDT {fmt(totalSpend)}</span>
+              <span className="text-black">৳ {fmt(totalSpend)}</span>
             </p>
           </div>
         </div>
@@ -158,13 +158,13 @@ export default async function SummaryPage({ params }: PageProps) {
                   <p>
                     <span className="text-gray-900 font-bold">Paid: </span>
                     <span className="font-bold text-[#1DD100]">
-                      {fmt(member.totalPaid)}
+                      ৳ {fmt(member.totalPaid)}
                     </span>
                   </p>
                   <p>
                     <span className="text-gray-900 font-bold">Share: </span>
                     <span className="font-bold text-red-600">
-                      {fmt(member.totalOwed)}
+                      ৳ {fmt(member.totalOwed)}
                     </span>
                   </p>
                 </div>
@@ -175,11 +175,11 @@ export default async function SummaryPage({ params }: PageProps) {
                   ) : isCreditor ? (
                     <>
                       Gets Back{" "}
-                      <span className="text-[#1DD100]">{fmt(net)}</span>
+                      <span className="text-[#1DD100]">৳ {fmt(net)}</span>
                     </>
                   ) : (
                     <>
-                      Pay <span className="text-red-600">{fmt(-net)}</span>
+                      Pay <span className="text-red-600">৳ {fmt(-net)}</span>
                     </>
                   )}
                 </p>
@@ -208,7 +208,7 @@ export default async function SummaryPage({ params }: PageProps) {
             return (
               <div key={expense.id || index} className="text-sm">
                 <p className="font-medium text-black">
-                  {index + 1}. {expense.description} - BDT {fmt(expense.amount)}{" "}
+                  {index + 1}. {expense.description} - ৳ {fmt(expense.amount)}{" "}
                   (Paid by {expense.payerName})
                 </p>
                 <p className="text-xs text-gray-500">{eDate}</p>
