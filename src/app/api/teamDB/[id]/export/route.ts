@@ -188,12 +188,15 @@ export async function GET(
 
             const x = startX + (col * colWidth);
 
+             // 1. Draw Member Name (Bold, Black)
             page.drawText(member.name, { x, y, size: 12, font: boldFont, color: rgb(0, 0, 0) });
 
-            page.drawText("Paid: ", { x, y: y - 18, size: 9, font, color: gray500 });
-            page.drawText(`${member.totalPaid.toFixed(2)}`, { x: x + 25, y: y - 18, size: 9, font: boldFont, color: brandGreen });
+            // 2. Draw Paid Text and Amount perfectly aligned
+            page.drawText("Paid:", { x, y: y - 18, size: 9, font, color: gray500 });
+            page.drawText(`${member.totalPaid.toFixed(2)}`, { x: x + 35, y: y - 18, size: 9, font: boldFont, color: brandGreen });
 
-            page.drawText("Share: ", { x, y: y - 34, size: 9, font, color: gray500 });
+            // 3. Draw Share Text and Amount perfectly aligned
+            page.drawText("Share:", { x, y: y - 34, size: 9, font, color: gray500 });
             page.drawText(`${member.totalOwed.toFixed(2)}`, { x: x + 35, y: y - 34, size: 9, font: boldFont, color: red600 });
 
             const net = member.totalPaid - member.totalOwed;
@@ -232,7 +235,7 @@ export async function GET(
             y -= 75;
         }
 
-        y -= 20;
+        y -= 0;
         // Draw Bottom Dashed Line
         drawDashedLine(y);
         y -= 30; // More space after the line
