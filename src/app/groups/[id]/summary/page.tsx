@@ -211,7 +211,7 @@ export default async function SummaryPage({ params }: PageProps) {
                   {index + 1}. {expense.description} - ৳ {fmt(expense.amount)}{" "}
                   (Paid by {expense.payerName})
                 </p>
-                <p className="text-xs text-gray-500">{eDate}</p>
+                <p className="text-xs text-gray-500 ml-3">{eDate}</p>
               </div>
             );
           })}

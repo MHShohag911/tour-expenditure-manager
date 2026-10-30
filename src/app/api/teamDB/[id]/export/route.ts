@@ -47,6 +47,7 @@ export async function GET(
         const red600 = rgb(0.86, 0.15, 0.15);   // #dc2626
         const gray500 = rgb(0.42, 0.45, 0.50);  // #6b7280
         const lightGreen = rgb(0.11, 0.82, 0);  // For dashed lines
+        const gray700 = rgb(55 / 255, 65 / 255, 81 / 255);
 
         // Load the logo
         try {
@@ -165,16 +166,16 @@ export async function GET(
         y -= 15;
         page.drawText(`Total Expenses: ${expenses.length}`, { x: totalsX, y, size: 10, font });
         y -= 15;
-        page.drawText(`Total Spend:  ${totalSpend.toFixed(2)}`, { x: totalsX, y, size: 10, font: boldFont });
+        page.drawText(`Total Spend:  BDT ${totalSpend.toFixed(2)}`, { x: totalsX, y, size: 10, font: boldFont} );
         y -= 15;
 
         // Draw Middle Dashed Line
         drawDashedLine(y);
-        y -= 30; // More space after the line
+        y -= 25; // More space after the line
 
         // 6. Member Summary
-        drawText("Member Summary", { bold: true, size: 16, indent: 40 });
-        y -= 15;
+        drawText("Member Summary", { bold: true, size: 16, indent: 40, color: gray700 });
+        y -= 5;
 
         let col = 0;
         const startX = 40;
@@ -241,16 +242,17 @@ export async function GET(
         y -= 30; // More space after the line
 
         // 7. Expense List
-        drawText("Expense Details", { bold: true, size: 16, indent: 40 });
-        y -= 10;
+        drawText("Expense Details", { bold: true, size: 16, indent: 40, color: gray700 });
+        y -= 5;
 
         expenses.forEach((expense, index) => {
             const eDate = expense.createdAt
                 ? new Date(expense.createdAt).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })
                 : expense.time;
 
-            drawText(`${index + 1}. ${expense.description} -  ${expense.amount.toFixed(2)} (Paid by ${expense.payerName})`, { size: 10, indent: 40 });
-            drawText(`${eDate}`, { size: 8, indent: 48, color: gray500 });
+            drawText(`${index + 1}. ${expense.description} -  BDT ${expense.amount.toFixed(2)} (Paid by ${expense.payerName})`, { size: 10, indent: 40 });
+            y -= -4
+            drawText(` ${eDate}`, { size: 8, indent: 48, color: gray500 });
             y -= 2;
         });
 
