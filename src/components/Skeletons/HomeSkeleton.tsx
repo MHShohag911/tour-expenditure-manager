@@ -1,9 +1,11 @@
 export default function HomeSkeleton() {
   return (
-    <div className="container mx-auto flex min-h-screen flex-col px-4">      
+    <div className="container mx-auto flex min-h-screen flex-col">      
       <main className="min-h-screen flex-1">
         <div className="my-10 flex justify-center">
-          <div className="h-8 w-64 bg-gray-200 rounded-md animate-pulse" />
+          <div className="h-8 w-64 bg-gray-200 rounded-md animate-pulse">
+            
+          </div>
         </div>
 
         {/* Group Form Skeleton */}
@@ -14,7 +16,7 @@ export default function HomeSkeleton() {
 
         {/* Active Group Card Skeleton (repeated 2 times) */}
         {[1, 2].map((i) => (
-          <div key={i} className="my-12 rounded-xl border border-gray-100 bg-white py-6 px-4 sm:px-5 shadow-sm">
+          <div key={i} className="my-12 rounded-xl border border-gray-200 bg-white py-6 px-4 sm:px-4 shadow-sm">
             {/* Header row: stacks on mobile, side-by-side on desktop */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
               <div className="h-8 w-48 bg-gray-200 rounded-md animate-pulse" />
