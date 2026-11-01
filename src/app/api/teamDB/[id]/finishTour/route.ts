@@ -48,7 +48,7 @@ export async function PATCH(
             );
         }
 
-        if (!Array.isArray(group.members) || group.members.length < 2) {
+        if (!Array.isArray(group.members) || group.members.length < 1) {
             return NextResponse.json(
                 { message: "Add at least two members before finishing the tour." },
                 { status: 400 }
