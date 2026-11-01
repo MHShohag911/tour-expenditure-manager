@@ -21,7 +21,7 @@ export default function HomeSkeleton() {
             className="my-12 rounded-xl border border-gray-200 bg-white py-6 px-4 sm:px-4 shadow-sm"
           >
             {/* Header row: stacks on mobile, side-by-side on desktop */}
-            <div className="">
+            <div className="mb-4">
               <div className="h-8 w-48 mb-2 bg-gray-200 rounded-md animate-pulse" />
               <div className="flex justify-between md:justify-end">
                 <div className="flex flex-col md:flex-row gap-2">
